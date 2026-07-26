@@ -1,0 +1,58 @@
+schema_version: "1.1"
+modules:
+  - id: "descriptive"
+    order: 2
+    output_dir: "02_描述性统计"
+    status: "ready"
+  - id: "group-comparison"
+    order: 3
+    output_dir: "03_单因素分析"
+    status: "ready"
+  - id: "correlation"
+    order: 4
+    output_dir: "04_相关性分析"
+    status: "ready"
+  - id: "linear-regression"
+    order: 5
+    output_dir: "05_多元线性回归"
+    status: "ready"
+  - id: "logistic-regression"
+    order: 6
+    output_dir: "06_Logistic回归"
+    status: "ready"
+  - id: "reliability-validity"
+    order: 7
+    output_dir: "07_信度与效度分析"
+    status: "ready"
+  - id: "factor-analysis"
+    order: 8
+    output_dir: "08_探索性与验证性因子分析"
+    status: "ready"
+  - id: "mixed-effects"
+    order: 9
+    output_dir: "09_混合效应模型"
+    status: "ready"
+  - id: "generalized-regression"
+    order: 20
+    output_dir: "20_扩展广义回归"
+    status: "planned"
+  - id: "gee"
+    order: 21
+    output_dir: "21_广义估计方程"
+    status: "planned"
+  - id: "measurement-invariance"
+    order: 22
+    output_dir: "22_测量不变性"
+    status: "planned"
+  - id: "survival"
+    order: 23
+    output_dir: "23_生存分析"
+    status: "planned"
+  - id: "network"
+    order: 30
+    output_dir: "30_网络分析"
+    status: "planned"
+  - id: "bayesian"
+    order: 31
+    output_dir: "31_贝叶斯网络"
+    status: "planned"

@@ -1,0 +1,33 @@
+schema_version: "1.1"
+id: "mixed-effects"
+name_zh: "混合效应模型"
+status: "ready"
+version: "0.1.0"
+output_order: 9
+output_dir: "09_混合效应模型"
+methods:
+  - "linear-mixed-effects"
+  - "binary-generalized-linear-mixed-effects"
+entrypoint: "analysis.R"
+required_packages:
+  - name: "lme4"
+    minimum_version: "1.1.37"
+  - name: "lmerTest"
+    minimum_version: "3.1.3"
+  - name: "openxlsx2"
+    minimum_version: "1.20.0"
+optional_packages: []
+required_config:
+  - "analysis.parameters.mixed-effects.outcome"
+  - "analysis.parameters.mixed-effects.fixed_effects"
+  - "analysis.parameters.mixed-effects.group"
+outputs:
+  tables:
+    - "01_固定效应"
+    - "02_随机效应"
+    - "03_模型摘要"
+    - "04_模型诊断"
+  figures:
+    - "01_混合效应模型诊断图"
+  model_objects:
+    - "01_混合效应模型.rds"

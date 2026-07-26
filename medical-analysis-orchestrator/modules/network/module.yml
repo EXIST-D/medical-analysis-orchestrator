@@ -1,0 +1,30 @@
+schema_version: "1.1"
+id: "network"
+name_zh: "网络分析"
+status: "planned"
+version: "0.1.0"
+output_order: 30
+output_dir: "30_网络分析"
+methods:
+  - "network-estimation"
+  - "bootstrap-stability"
+  - "bridge-centrality"
+  - "network-comparison"
+entrypoint: "analysis.R"
+required_packages:
+  - "qgraph"
+  - "bootnet"
+optional_packages:
+  - "networktools"
+  - "NetworkComparisonTest"
+required_config:
+  - "analysis.parameters.network.nodes"
+outputs:
+  tables:
+    - "网络边"
+    - "网络稳定性"
+  figures:
+    - "网络图"
+    - "Bootstrap稳定性图"
+  model_objects:
+    - "网络模型.rds"

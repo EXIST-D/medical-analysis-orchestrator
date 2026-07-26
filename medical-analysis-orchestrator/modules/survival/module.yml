@@ -1,0 +1,29 @@
+schema_version: "1.1"
+id: "survival"
+name_zh: "生存分析"
+status: "planned"
+version: "0.1.0"
+output_order: 23
+output_dir: "23_生存分析"
+methods:
+  - "kaplan-meier"
+  - "log-rank"
+  - "cox-proportional-hazards"
+  - "competing-risks"
+entrypoint: "analysis.R"
+required_packages:
+  - "survival"
+optional_packages:
+  - "survminer"
+  - "cmprsk"
+required_config:
+  - "variables.time"
+  - "variables.event"
+outputs:
+  tables:
+    - "生存分析估计"
+    - "比例风险诊断"
+  figures:
+    - "生存曲线"
+  model_objects:
+    - "生存分析模型.rds"

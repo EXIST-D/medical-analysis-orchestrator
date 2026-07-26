@@ -1,0 +1,26 @@
+schema_version: "1.1"
+id: "gee"
+name_zh: "广义估计方程"
+status: "planned"
+version: "0.1.0"
+output_order: 21
+output_dir: "21_广义估计方程"
+methods:
+  - "gaussian-gee"
+  - "binomial-gee"
+entrypoint: "analysis.R"
+required_packages:
+  - "geepack"
+optional_packages: []
+required_config:
+  - "variables.id"
+  - "variables.time"
+  - "variables.outcomes.primary"
+outputs:
+  tables:
+    - "GEE估计"
+    - "GEE诊断"
+  figures:
+    - "GEE拟合图"
+  model_objects:
+    - "GEE模型.rds"

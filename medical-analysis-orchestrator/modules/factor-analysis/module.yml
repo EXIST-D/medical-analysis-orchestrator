@@ -1,0 +1,39 @@
+schema_version: "1.1"
+id: "factor-analysis"
+name_zh: "探索性与验证性因子分析"
+status: "ready"
+version: "0.1.0"
+output_order: 8
+output_dir: "08_探索性与验证性因子分析"
+methods:
+  - "exploratory-factor-analysis"
+  - "parallel-analysis"
+  - "confirmatory-factor-analysis"
+  - "composite-reliability"
+  - "average-variance-extracted"
+entrypoint: "analysis.R"
+required_packages:
+  - name: "psych"
+    minimum_version: "2.5.0"
+  - name: "lavaan"
+    minimum_version: "0.6.20"
+  - name: "openxlsx2"
+    minimum_version: "1.20.0"
+optional_packages: []
+required_config:
+  - "analysis.parameters.factor-analysis.items"
+outputs:
+  tables:
+    - "01_因子分析适用性检查"
+    - "02_EFA因子载荷"
+    - "03_EFA因子解释"
+    - "04_CFA拟合指标"
+    - "05_CFA标准化载荷"
+    - "06_CFA组合信度与AVE"
+    - "07_CFA区分效度"
+    - "08_CFA修改指数"
+  figures:
+    - "01_碎石图与平行分析"
+  model_objects:
+    - "01_EFA分析对象.rds"
+    - "02_CFA模型.rds"

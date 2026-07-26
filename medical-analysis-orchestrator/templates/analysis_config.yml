@@ -1,0 +1,190 @@
+schema_version: "1.1"
+
+run:
+  run_id: ""
+  mode: "inspect"
+  output_dir: ""
+  random_seed: 20260726
+
+input:
+  path: ""
+  dataset: ""
+  sheet: null
+  format: "auto"
+  encoding: "auto"
+  read_only: true
+  expected_sha256: null
+  prepared_data_path: ""
+
+research:
+  primary_question: ""
+  design: "unknown"
+  primary_objective: ""
+  estimand_or_target: ""
+  secondary_objectives: []
+
+variables:
+  id: null
+  outcomes:
+    primary: null
+    secondary: []
+  exposures: []
+  covariates: []
+  categorical: []
+  grouping: []
+  time: null
+  event: null
+  reference_levels: {}
+  labels: {}
+  units: {}
+
+data_handling:
+  auto_actions:
+    - "copy_to_run"
+    - "normalize_column_names"
+    - "disambiguate_duplicate_column_names"
+    - "write_utf8_csv"
+  confirmed_actions: []
+  missing_value_codes: []
+  missing_strategy: "module_complete_case"
+  duplicate_strategy: "report_only"
+  outlier_strategy: "report_only"
+  exclusions: []
+  transformations: []
+  recodes: []
+  merge_plan: []
+  multiple_testing:
+    method: "holm"
+    family_definition: "within_each_confirmed_analysis_family"
+
+analysis:
+  modules: []
+  methods: []
+  parameters:
+    descriptive:
+      continuous: []
+      categorical: []
+      stratify_by: null
+    group-comparison:
+      group: null
+      continuous: []
+      categorical: []
+      paired: false
+      continuous_method: "auto"
+      posthoc: "none"
+    correlation:
+      variables: []
+      method: "spearman"
+      adjust_method: "holm"
+    linear-regression:
+      outcome: null
+      predictors: []
+      categorical: []
+      robust_se: false
+    logistic-regression:
+      outcome: null
+      event_level: null
+      predictors: []
+      categorical: []
+      reference_levels: {}
+    reliability-validity:
+      scales: {}
+      compute_omega: true
+      criterion_variables: []
+      criterion_method: "spearman"
+      minimum_complete_n: 30
+    factor-analysis:
+      items: []
+      efa:
+        enabled: false
+        factors: null
+        extraction: "minres"
+        rotation: "oblimin"
+        parallel_analysis: true
+        parallel_iterations: 50
+        loading_cutoff: 0.30
+      cfa:
+        enabled: false
+        model: ""
+        estimator: "MLR"
+        ordered: []
+        missing: "fiml"
+        std_lv: true
+        modification_index_threshold: 10
+    mixed-effects:
+      family: "gaussian"
+      outcome: null
+      event_level: null
+      fixed_effects: []
+      interactions: []
+      categorical: []
+      reference_levels: {}
+      group: null
+      random_intercept: true
+      random_slopes: []
+      correlated_random_effects: true
+      time_variable: null
+      reml: true
+      optimizer: "bobyqa"
+  diagnostics: []
+  sensitivity_analyses: []
+
+runtime:
+  language: "R"
+  r_executable: "auto"
+  minimum_version: "4.3.0"
+  auto_install_missing_packages: true
+  library_scope: "project"
+  project_library: ".r-library"
+  repository: "https://cloud.r-project.org"
+  use_renv: "auto"
+  project_dir: ""
+
+reporting:
+  language: "zh-CN"
+  table_formats:
+    - "csv"
+    - "xlsx"
+  figure_contract:
+    profile: "analysis"
+    backend: "R"
+    formats:
+      - "png"
+    width_mm: 183
+    height_mm: 120
+    dpi: 300
+    require_source_data: true
+    require_statistics_metadata: true
+    require_editable_text: false
+  manuscript_support:
+    enabled: false
+    separate_results_and_interpretation: true
+    include_methods_reproducibility: true
+    build_terminology_ledger: true
+    claims: []
+    terminology: {}
+  build_word_report: true
+  suppress_small_cells: true
+  small_cell_threshold: 5
+  include_patient_level_data: false
+  word:
+    east_asia_font: "宋体"
+    latin_font: "Times New Roman"
+    body_size_pt: 12
+    line_spacing: 1.5
+    first_line_indent_chars: 2
+  workbook:
+    east_asia_font: "宋体"
+    latin_font: "Times New Roman"
+    body_size_pt: 10.5
+    style: "three_line"
+    use_color: false
+
+decisions_required: []
+
+approval:
+  confirmed: false
+  confirmed_by: ""
+  confirmed_at: ""
+  plan_sha256: ""
+  notes: ""

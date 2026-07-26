@@ -1,0 +1,4 @@
+interface:
+  display_name: "医学数据分析编排器"
+  short_description: "以 R 完成可复现医学分析、可追溯图形和受控论文支持"
+  default_prompt: "Use $medical-analysis-orchestrator to inspect my medical dataset, recommend an analysis plan, and wait for confirmation before execution."

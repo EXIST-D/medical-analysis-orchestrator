@@ -1,0 +1,32 @@
+schema_version: "1.1"
+id: "reliability-validity"
+name_zh: "信度与效度分析"
+status: "ready"
+version: "0.1.0"
+output_order: 7
+output_dir: "07_信度与效度分析"
+methods:
+  - "cronbach-alpha"
+  - "mcdonald-omega"
+  - "corrected-item-total-correlation"
+  - "kmo"
+  - "bartlett-sphericity"
+  - "criterion-validity-correlation"
+entrypoint: "analysis.R"
+required_packages:
+  - name: "psych"
+    minimum_version: "2.5.0"
+  - name: "openxlsx2"
+    minimum_version: "1.20.0"
+optional_packages: []
+required_config:
+  - "analysis.parameters.reliability-validity.scales"
+outputs:
+  tables:
+    - "01_量表信度汇总"
+    - "02_条目分析"
+    - "03_结构效度前提检查"
+    - "04_效标关联效度"
+  figures: []
+  model_objects:
+    - "01_信效度分析对象.rds"

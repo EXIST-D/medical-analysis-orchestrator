@@ -1,0 +1,26 @@
+schema_version: "1.1"
+id: "linear-regression"
+name_zh: "多元线性回归"
+status: "ready"
+version: "0.1.0"
+output_order: 5
+output_dir: "05_多元线性回归"
+methods:
+  - "multiple-linear-regression"
+entrypoint: "analysis.R"
+required_packages:
+  - name: "openxlsx2"
+    minimum_version: "1.20.0"
+optional_packages: []
+required_config:
+  - "analysis.parameters.linear-regression.outcome"
+  - "analysis.parameters.linear-regression.predictors"
+outputs:
+  tables:
+    - "01_线性回归系数"
+    - "02_线性回归模型摘要"
+    - "03_线性回归诊断"
+  figures:
+    - "01_线性回归诊断图"
+  model_objects:
+    - "01_线性回归模型.rds"

@@ -1,0 +1,27 @@
+# Local R project library
+**/.r-library/
+
+# Python caches and coverage
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Runtime and generated analysis outputs
+runtime/
+runs/
+outputs/
+99_运行记录/
+*.log
+*.tmp
+*.bak
+
+# Local environment and editor files
+.env
+.env.*
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

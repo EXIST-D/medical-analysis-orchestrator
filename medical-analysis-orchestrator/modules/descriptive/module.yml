@@ -1,0 +1,23 @@
+schema_version: "1.1"
+id: "descriptive"
+name_zh: "描述性统计"
+status: "ready"
+version: "0.1.0"
+output_order: 2
+output_dir: "02_描述性统计"
+methods:
+  - "continuous-summary"
+  - "categorical-summary"
+entrypoint: "analysis.R"
+required_packages:
+  - name: "openxlsx2"
+    minimum_version: "1.20.0"
+optional_packages: []
+required_config:
+  - "input.prepared_data_path"
+outputs:
+  tables:
+    - "01_连续变量描述性统计"
+    - "02_分类变量描述性统计"
+  figures: []
+  model_objects: []

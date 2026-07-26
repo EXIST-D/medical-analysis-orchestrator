@@ -1,0 +1,24 @@
+schema_version: "1.1"
+id: "bayesian"
+name_zh: "贝叶斯网络"
+status: "planned"
+version: "0.1.0"
+output_order: 31
+output_dir: "31_贝叶斯网络"
+methods:
+  - "bayesian-network-structure-learning"
+  - "bootstrap-arc-strength"
+entrypoint: "analysis.R"
+required_packages:
+  - "bnlearn"
+optional_packages:
+  - "igraph"
+required_config:
+  - "analysis.parameters.bayesian.nodes"
+outputs:
+  tables:
+    - "贝叶斯网络边"
+  figures:
+    - "贝叶斯网络图"
+  model_objects:
+    - "贝叶斯网络模型.rds"

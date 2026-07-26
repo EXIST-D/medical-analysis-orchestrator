@@ -1,0 +1,29 @@
+schema_version: "1.1"
+id: "group-comparison"
+name_zh: "单因素分析"
+status: "ready"
+version: "0.1.0"
+output_order: 3
+output_dir: "03_单因素分析"
+methods:
+  - "t-test"
+  - "welch-test"
+  - "mann-whitney"
+  - "anova"
+  - "welch-anova"
+  - "kruskal-wallis"
+  - "chi-square"
+  - "fisher-exact"
+entrypoint: "analysis.R"
+required_packages:
+  - name: "openxlsx2"
+    minimum_version: "1.20.0"
+optional_packages: []
+required_config:
+  - "analysis.parameters.group-comparison.group"
+outputs:
+  tables:
+    - "01_连续变量组间比较"
+    - "02_分类变量组间比较"
+  figures: []
+  model_objects: []

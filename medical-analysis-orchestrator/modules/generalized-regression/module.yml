@@ -1,0 +1,28 @@
+schema_version: "1.1"
+id: "generalized-regression"
+name_zh: "扩展广义回归"
+status: "planned"
+version: "0.1.0"
+output_order: 20
+output_dir: "20_扩展广义回归"
+methods:
+  - "ordinal-logistic"
+  - "multinomial-logistic"
+  - "poisson"
+  - "negative-binomial"
+entrypoint: "analysis.R"
+required_packages: []
+optional_packages:
+  - "ordinal"
+  - "MASS"
+  - "VGAM"
+required_config:
+  - "variables.outcomes.primary"
+outputs:
+  tables:
+    - "扩展回归估计"
+    - "扩展回归诊断"
+  figures:
+    - "扩展回归诊断图"
+  model_objects:
+    - "扩展回归模型.rds"

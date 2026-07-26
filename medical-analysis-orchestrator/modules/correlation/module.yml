@@ -1,0 +1,24 @@
+schema_version: "1.1"
+id: "correlation"
+name_zh: "相关性分析"
+status: "ready"
+version: "0.1.0"
+output_order: 4
+output_dir: "04_相关性分析"
+methods:
+  - "pearson"
+  - "spearman"
+  - "kendall"
+entrypoint: "analysis.R"
+required_packages:
+  - name: "openxlsx2"
+    minimum_version: "1.20.0"
+optional_packages: []
+required_config:
+  - "analysis.parameters.correlation.variables"
+outputs:
+  tables:
+    - "01_相关系数矩阵"
+    - "02_相关性检验明细"
+  figures: []
+  model_objects: []
