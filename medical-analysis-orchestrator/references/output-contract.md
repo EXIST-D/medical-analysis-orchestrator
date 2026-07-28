@@ -26,9 +26,12 @@ analysis_results.rds
 execution_status.json
 sessionInfo.txt
 package_versions.csv
+renv.lock
 manifest.json
 validation_report.json
 ```
+
+`runtime/` 至少记录 `python_environment.json`、`python_requirements.lock.json`、`r_environment.json`、`renv_status.json` 和 `environment_manifest.json`。这些清单只记录版本、能力和锁定状态，不记录患者级数据。
 
 未选中的模块目录不必创建。文件名使用“序号_内容”形式，不使用“最终版2”“新结果”等含糊命名。
 
@@ -38,7 +41,10 @@ validation_report.json
 02_主张证据边界表.csv
 03_统计方法与可复现性.md
 04_术语账本.yml
+05_学术报告表述审计.md
 ```
+
+启用视觉回归时，`90_最终报告/visual_regression/visual_regression.json` 记录 Word/XLSX 的渲染能力、PDF/页面指纹或明确的不可用状态。
 
 ## manifest
 
@@ -66,5 +72,7 @@ manifest 不记录逐行患者内容，也不对自身或验证报告形成循�
 - 图形必须由 R 生成并登记 Source Data、统计元数据和全部确认格式。
 - 投稿图形档位必须包含 PNG、SVG、PDF 和 TIFF。
 - 论文主张的证据引用必须解析到同一统一结果对象。
+- 诊断状态必须属于受控枚举，不能用任意文本伪装为通过。
+- `reporting.visual_regression.require_renderer: true` 时必须实际完成 LibreOffice 页面渲染；渲染器不可用即失败。
 
 `execute` 验证通过后才能生成报告；报告生成后必须再通过 `report` 验证。

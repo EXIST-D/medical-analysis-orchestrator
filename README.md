@@ -10,7 +10,7 @@ inspect → recommend → confirm → execute → report
 
 Skill 先以只读方式识别文件、数据集、变量类型、缺失、重复和潜在研究角色；再根据研究问题、研究设计与数据条件提出统计方案；只有用户明确确认结局、变量、清洗规则和方法后，才调用 R 执行分析并生成表格、图形、运行记录和 Word 报告。
 
-当前版本：`0.0.1`
+当前版本：`0.0.4`
 
 发布状态：Beta / 技术预览版
 
@@ -74,17 +74,17 @@ medical-analysis-orchestrator/
 
 验证统一结果对象、文件哈希和模块顺序，只使用同一个 `run_id` 的结果生成 CSV、XLSX、图形、Source Data、模型对象、运行记录和 Word 报告。
 
-## 0.0.1 可执行模块
+## 0.0.4 可执行模块
 
 | 模块 | 当前能力 | 状态 |
 |---|---|---|
 | `descriptive` | 连续变量与分类变量描述性统计 | `ready` |
-| `group-comparison` | Welch t/ANOVA、Wilcoxon/Kruskal–Wallis、χ²/Fisher | `ready` |
-| `correlation` | Pearson、Spearman、Kendall 与多重校正 | `ready` |
-| `linear-regression` | 多元线性回归、共线性和残差诊断 | `ready` |
-| `logistic-regression` | 二分类 Logistic 回归、OR、AUC、Brier 和 ROC | `ready` |
-| `reliability-validity` | α、ω、条目分析、KMO、Bartlett 与效标关联 | `ready` |
-| `factor-analysis` | EFA、平行分析、CFA、CR、AVE 和区分效度 | `ready` |
+| `group-comparison` | Welch t/ANOVA、配对 t、Wilcoxon/Kruskal–Wallis、配对 Wilcoxon、χ²/Fisher 与确认后事后比较 | `ready` |
+| `correlation` | Pearson、Spearman、Kendall、多重校正和有效样本量矩阵 | `ready` |
+| `linear-regression` | 多元线性回归、HC3 稳健标准误、共线性和残差诊断 | `ready` |
+| `logistic-regression` | 二元 Logistic 回归、OR、AUC、Brier、表观校准、ROC 和分离安全处理 | `ready` |
+| `reliability-validity` | α、ω、条目分析、KMO、Bartlett、效标关联和有序条目多分相关 | `ready` |
+| `factor-analysis` | EFA、平行分析、CFA、CR、AVE、区分效度和独立样本划分验证 | `ready` |
 | `mixed-effects` | 连续结局 LMM 与二分类结局 GLMM | `ready` |
 
 以下接口已经登记，但仍处于 `planned` 状态，不能生成正式结果：
@@ -101,10 +101,10 @@ medical-analysis-orchestrator/
 - Windows 10/11 为当前主要验证平台；
 - R `>= 4.3.0`；
 - Python 3.11 或兼容版本；
-- Python 编排依赖：`pandas`、`openpyxl`、`PyYAML`、`python-docx`、`pyreadstat`；
+- Python 核心编排依赖：`pandas`、`openpyxl`、`PyYAML`、`python-docx`；`xlrd`、`pyreadstat`、`pyarrow` 等只按实际输入格式按需安装；
 - R 包由确认后的模块按需解析和安装。
 
-R 依赖默认安装到 Skill 的项目级 `.r-library`，不修改系统 R Library。`.r-library` 是本机运行产物，不属于源码发布包，本仓库已通过发布白名单与 `.gitignore` 双重排除。
+R 依赖默认安装到 Skill 的项目级 `.r-library`，不修改系统 R Library。`.r-library` 是本机运行产物，不属于源码发布包，本仓库已通过发布白名单与 `.gitignore` 双重排除。每次运行还会输出 `renv.lock`、Python 依赖锁定文件和 R/Python 双环境 manifest；`renv` 可按配置 snapshot 或 restore。
 
 ## 安装方式
 
@@ -184,6 +184,7 @@ data_profile.csv
 99_运行记录/
 sessionInfo.txt
 package_versions.csv
+renv.lock
 manifest.json
 ```
 
@@ -217,7 +218,7 @@ manifest.json
 - 三线表、统计图、Source Data 和 Word 报告验证；
 - 发布包 `.r-library`、缓存、运行产物和敏感信息排除检查。
 
-当前主要验证环境为 Windows、R 4.6.1 和 Python 3.11。其他操作系统、R/Python 版本和复杂真实研究设计仍需进一步验证。
+当前主要验证环境为 Windows、R 4.6.1 和 Python 3.11。仓库已配置 GitHub Actions 的 Windows + R 4.3/4.4/4.6 契约与 R 解析矩阵，以及带 LibreOffice 的 Word/XLSX 页面渲染 smoke test。真实研究设计、外部验证和跨版本视觉基线仍需在使用场景中复核。
 
 ## 原创性与第三方依赖声明
 
@@ -234,7 +235,7 @@ manifest.json
 如果本项目在研究、教学、方法演示或软件工作流中对你有帮助，建议引用具体版本，以便结果复现：
 
 ```text
-EXIST-D. medical-analysis-orchestrator (Version 0.0.1) [Computer software].
+EXIST-D. medical-analysis-orchestrator (Version 0.0.4) [Computer software].
 GitHub. https://github.com/EXIST-D/medical-analysis-orchestrator
 ```
 

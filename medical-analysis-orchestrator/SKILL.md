@@ -26,7 +26,7 @@ description: 通用医学数据分析编排 Skill。用于读取用户指定的 
 - 不自动删除异常值、重复值或病例，不自动插补，不自动改变量表计分。
 - 不擅自指定主要结局、事件水平、分组变量、参照组或多重比较策略。
 - 所有需确认清洗动作必须含确认人、确认时间和理由，并写入清洗日志。
-- 小样本、稀少事件、严重缺失、完全分离、不收敛或关键假设失败时，警告或拒绝复杂模型。
+- 小样本、稀少事件、严重缺失、完全分离、不收敛或关键假设失败时，警告或拒绝复杂模型；Logistic 默认在疑似分离时安全停止。
 - 横断面关联、网络边和贝叶斯网络方向不得表述为确定因果关系。
 - 报告只能消费同一 `run_id` 下已验证的统一结果对象，不能手工拼接不同运行结果。
 - 记录输入 SHA-256、方案 SHA-256、R 版本、包版本、随机种子、模型对象和输出文件哈希。
@@ -58,6 +58,7 @@ description: 通用医学数据分析编排 Skill。用于读取用户指定的 
 - [报告模板](references/report-template.md)
 - 制作或验证统计图时读取 [R 图形证据契约](references/r-figure-contract.md)。
 - 启用论文写作支持时读取 [科学写作支持契约](references/scientific-writing-contract.md)。
+- 组织学术结果、图注或讨论边界时同时读取 [学术报告表述与报告风格](references/academic-reporting-style.md)。
 
 ## 1. 数据探查
 
@@ -94,12 +95,12 @@ python scripts/recommend_analysis.py --profile "<run目录>/data_profile.json" -
 当前已可执行模块：
 
 - `descriptive`：连续变量与分类变量描述性统计。
-- `group-comparison`：Welch t/ANOVA、Wilcoxon/Kruskal–Wallis、χ²/Fisher。
-- `correlation`：Pearson、Spearman、Kendall 及多重校正。
-- `linear-regression`：多元线性回归、共线性和残差诊断。
-- `logistic-regression`：二元 Logistic 回归、OR、EPV、AUC、Brier 和 ROC。
-- `reliability-validity`：Cronbach’s α、McDonald’s ω、条目分析、KMO、Bartlett 与可选效标关联。
-- `factor-analysis`：EFA、平行分析、CFA、拟合指标、组合信度、AVE、区分效度和修改指数审计。
+- `group-comparison`：Welch t/ANOVA、配对 t、Wilcoxon/Kruskal–Wallis、配对 Wilcoxon、χ²/Fisher，以及确认后的 Tukey 或成对非参数事后比较。
+- `correlation`：Pearson、Spearman、Kendall、多重校正与变量对有效样本量矩阵。
+- `linear-regression`：多元线性回归、HC3 稳健标准误、共线性和残差诊断。
+- `logistic-regression`：二元 Logistic 回归、OR、EPV、AUC、Brier、表观校准、ROC 与分离安全处理。
+- `reliability-validity`：Cronbach’s α、McDonald’s ω、条目分析、KMO、Bartlett、可选效标关联，以及有序条目的多分相关支持。
+- `factor-analysis`：EFA、平行分析、CFA、拟合指标、组合信度、AVE、区分效度、修改指数审计和可选 EFA/CFA 独立样本划分。
 - `mixed-effects`：连续结局 LMM 与二分类结局 GLMM，支持随机截距/斜率、交互项和拟合诊断。
 
 `generalized-regression`、`gee`、`measurement-invariance`、`survival`、`network`、`bayesian` 仍是后续扩展，不得以 `planned` 描述符生成正式结果。
@@ -130,11 +131,11 @@ python scripts/validate_config.py "<run目录>/analysis_plan.yml" --mode execute
 
 ## 4. R 环境与依赖
 
-运行时通过 `scripts/detect_r_environment.py` 依次检查配置路径、项目线索、`R_HOME`、`PATH`、Windows 注册表和常见安装位置。不得在 Skill 中固定机器路径。
+运行时通过 `scripts/detect_r_environment.py` 依次检查配置路径、项目线索、`R_HOME`、`PATH`、Windows 注册表和常见安装位置。不得在 Skill 中固定机器路径。`scripts/detect_python_environment.py` 会按输入格式识别 `openpyxl`、`xlrd`、`pyreadstat` 或 `pyarrow` 等 Python 依赖；只安装本次格式所需且缺失的包。
 
 每个 `module.yml` 声明自身 `required_packages` 和最低版本。只安装缺失或过旧的包到 Skill 的 `.r-library`，不修改系统 R Library。安装临时目录、安装日志和运行日志也必须位于当前运行目录或 Skill 目录。
 
-基础统计模块主要使用 base R；心理测量、因子分析和混合效应模块按需使用 `psych`、`lavaan`、`lme4`、`lmerTest`。所有模块使用项目级 `openxlsx2` 生成三线表工作簿。统计图形的预览和正式导出均由 R 完成；Python 仅负责数据编排、契约、文件验证、论文支持制品和 Word 报告。
+基础统计模块主要使用 base R；心理测量、因子分析和混合效应模块按需使用 `psych`、`lavaan`、`lme4`、`lmerTest`。所有模块使用项目级 `openxlsx2` 生成三线表工作簿。统计图形的预览和正式导出均由 R 完成；Python 仅负责数据编排、契约、文件验证、论文支持制品和 Word 报告。`runtime.use_renv` 支持 `off`、`snapshot` 和 `restore`；每次运行输出 `renv.lock`、Python 锁定文件和双环境清单。
 
 ## 5. 执行闭环
 
@@ -149,13 +150,13 @@ python scripts/run_pipeline.py --config "<run目录>/analysis_plan.yml"
 1. 校验方案与指纹；
 2. 校验原始文件 SHA-256；
 3. 创建清洁分析副本和清洗日志；
-4. 自动发现 R；
+4. 检测输入格式能力并按需准备 Python 依赖，自动发现 R；
 5. 解析模块依赖并按需安装到项目 Library；
 6. 按注册顺序执行 R 模块；
-7. 保存统一 JSON/RDS 结果对象、模型对象、图形和表格；
+7. 保存统一 JSON/RDS 结果对象、模型对象、图形和表格，并锁定运行环境；
 8. 重建 manifest 并校验文件哈希与模块顺序；
-9. 只从已验证结果生成 Word 报告；
-10. 再次执行 report 级验证。
+9. 只从已验证结果生成 Word 报告和学术表述审计；
+10. 在可用时对 Word/XLSX 做 LibreOffice 页面渲染回归，并再次执行 report 级验证。
 
 ## 6. 输出格式
 
@@ -179,6 +180,8 @@ runtime/
 XLSX 使用无底色、无多余颜色、隐藏网格线的三线表；中文宋体，英文和数字 Times New Roman。CSV 保持机器可读，不承诺字体和边框。
 
 Word 正文中文宋体、英文和数字 Times New Roman、小四 12 pt、1.5 倍行距、首行缩进 2 字符。表格与图形来自同一统一结果对象，完整高维表保留在 CSV/XLSX，Word 只展示适合阅读的摘要。
+
+当配置 `reporting.visual_regression.require_renderer: true` 时，缺少 LibreOffice 页面渲染器将使报告阶段失败；默认模式会登记“渲染器不可用”，但不声称已完成视觉审查。
 
 图形使用 `reporting.figure_contract.profile` 控制：
 

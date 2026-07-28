@@ -4,6 +4,7 @@ run_module <- function(config, context) {
   items <- unique(as.character(parameters$items %||% character()))
   efa_config <- parameters$efa %||% list()
   cfa_config <- parameters$cfa %||% list()
+  validation_config <- parameters$validation %||% list()
   run_efa <- isTRUE(efa_config$enabled)
   run_cfa <- isTRUE(cfa_config$enabled)
   if (length(items) < 3L) stop("因子分析至少需要 3 个条目。", call. = FALSE)
@@ -23,6 +24,36 @@ run_module <- function(config, context) {
   warnings <- character()
   if (n_complete < 100L || n_complete / length(items) < 5) {
     warnings <- c(warnings, "因子分析样本低于常用的 100 例或每条目 5 例经验标准，结果可能不稳定。")
+  }
+  validation_enabled <- isTRUE(validation_config$enabled)
+  efa_data <- complete_data
+  cfa_data <- item_data
+  split_table <- data.frame(
+    dataset = "full_analysis_data", n = n_complete,
+    role = "EFA/CFA shared sample", stringsAsFactors = FALSE
+  )
+  if (validation_enabled) {
+    split_method <- tolower(as.character(validation_config$split_method %||% "random"))
+    train_fraction <- as.numeric(validation_config$train_fraction %||% .7)
+    if (split_method != "random" || !is.finite(train_fraction) || train_fraction <= .5 || train_fraction >= .9) {
+      stop("独立验证仅支持 random 划分，且 train_fraction 必须在 0.5 与 0.9 之间。", call. = FALSE)
+    }
+    n_train <- floor(n_complete * train_fraction)
+    n_validation <- n_complete - n_train
+    if (n_train < 50L || n_validation < 50L || n_train / length(items) < 3 || n_validation / length(items) < 3) {
+      stop("EFA/CFA 独立验证划分后每个样本均需至少 50 个完整案例且每条目至少 3 个案例。", call. = FALSE)
+    }
+    set.seed(context$random_seed)
+    train_index <- sample.int(n_complete, n_train, replace = FALSE)
+    efa_data <- complete_data[train_index, , drop = FALSE]
+    cfa_data <- complete_data[-train_index, , drop = FALSE]
+    split_table <- data.frame(
+      dataset = c("efa_development", "cfa_independent_validation"),
+      n = c(nrow(efa_data), nrow(cfa_data)),
+      role = c("结构探索", "独立验证"),
+      stringsAsFactors = FALSE
+    )
+    warnings <- c(warnings, "EFA 与 CFA 使用随机划分的独立完整案例子样本；此划分不是外部验证。")
   }
   correlation_matrix <- stats::cor(item_data, use = "pairwise.complete.obs")
   kmo <- psych::KMO(correlation_matrix)
@@ -46,6 +77,11 @@ run_module <- function(config, context) {
     "因子分析适用性检查", factorability_table,
     c("KMO、Bartlett 和样本量应结合条目性质与研究设计判断。")
   ))
+  tables <- c(tables, list(write_result_table(
+    context, "factor-analysis", "02_因子分析样本划分",
+    "EFA/CFA 样本划分", split_table,
+    c("独立划分减少同一数据既探索又验证造成的乐观偏倚，但不能替代外部样本验证。")
+  )))
   figures <- list()
   model_objects <- list()
   efa_object <- NULL
@@ -68,7 +104,7 @@ run_module <- function(config, context) {
     if (isTRUE(efa_config$parallel_analysis)) {
       set.seed(context$random_seed)
       parallel_object <- suppressWarnings(psych::fa.parallel(
-        complete_data,
+        efa_data,
         fm = extraction,
         fa = "fa",
         n.iter = as.integer(efa_config$parallel_iterations %||% 50L),
@@ -83,9 +119,9 @@ run_module <- function(config, context) {
       }
     }
     efa_object <- suppressWarnings(psych::fa(
-      correlation_matrix,
+      stats::cor(efa_data, use = "pairwise.complete.obs"),
       nfactors = factors,
-      n.obs = n_complete,
+      n.obs = nrow(efa_data),
       rotate = rotation,
       fm = extraction,
       warnings = FALSE
@@ -107,12 +143,12 @@ run_module <- function(config, context) {
     )
     tables <- c(tables, list(
       write_result_table(
-        context, "factor-analysis", "02_EFA因子载荷",
+        context, "factor-analysis", "03_EFA因子载荷",
         "EFA 因子载荷", loading_table,
         c(paste0("确认因子数=", factors, "；提取=", extraction, "；旋转=", rotation, "。"))
       ),
       write_result_table(
-        context, "factor-analysis", "03_EFA因子解释",
+        context, "factor-analysis", "04_EFA因子解释",
         "EFA 因子解释", variance_table,
         c("因子数不得只根据单一经验阈值或显著性结果事后调整。")
       )
@@ -205,7 +241,7 @@ run_module <- function(config, context) {
     }
     cfa_object <- suppressWarnings(lavaan::cfa(
       model = model_syntax,
-      data = item_data,
+      data = cfa_data,
       estimator = estimator,
       ordered = if (length(ordered)) ordered else NULL,
       missing = missing_method,
@@ -299,22 +335,22 @@ run_module <- function(config, context) {
       names(modification_table)
     ), drop = FALSE]
     tables <- c(tables, list(
-      write_result_table(context, "factor-analysis", "04_CFA拟合指标", "CFA 拟合指标", fit_table),
+      write_result_table(context, "factor-analysis", "05_CFA拟合指标", "CFA 拟合指标", fit_table),
       write_result_table(
-        context, "factor-analysis", "05_CFA标准化载荷", "CFA 标准化载荷", loading_table,
+        context, "factor-analysis", "06_CFA标准化载荷", "CFA 标准化载荷", loading_table,
         c(paste0("估计量=", estimator, "；缺失策略=", missing_method, "。"))
       ),
       write_result_table(
-        context, "factor-analysis", "06_CFA组合信度与AVE",
+        context, "factor-analysis", "07_CFA组合信度与AVE",
         "CFA 组合信度与平均方差提取量", reliability_table
       ),
       write_result_table(
-        context, "factor-analysis", "07_CFA区分效度",
+        context, "factor-analysis", "08_CFA区分效度",
         "CFA 区分效度", discriminant_table,
         c("Fornell–Larcker 仅是区分效度证据之一。")
       ),
       write_result_table(
-        context, "factor-analysis", "08_CFA修改指数",
+        context, "factor-analysis", "09_CFA修改指数",
         "CFA 修改指数", modification_table,
         c("修改指数不得作为无理论依据的数据驱动改模指令。")
       )
@@ -352,6 +388,9 @@ run_module <- function(config, context) {
     sample = list(
       n_input = nrow(context$data),
       n_complete = n_complete,
+      n_efa = nrow(efa_data),
+      n_cfa = if (validation_enabled) nrow(cfa_data) else n_complete,
+      independent_validation_split = validation_enabled,
       items = as.list(items)
     ),
     random_seed = context$random_seed

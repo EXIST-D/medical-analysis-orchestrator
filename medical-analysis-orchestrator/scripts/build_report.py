@@ -462,6 +462,45 @@ def write_manuscript_support_artifacts(
     return rows
 
 
+def write_academic_reporting_audit(
+    run_dir: Path, plan: dict[str, Any], results: dict[str, Any]
+) -> Path:
+    """Record the evidence/boundary checks applied to report prose without inventing claims."""
+    output_dir = run_dir / "90_最终报告"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    manuscript = ((plan.get("reporting") or {}).get("manuscript_support") or {})
+    lines = [
+        "# 学术报告表述审计",
+        "",
+        "本文件仅审计本次自动报告的证据边界，不生成未确认的论文结论。",
+        "",
+        "## 已执行的约束",
+        "",
+        "- 结果章节只消费同一运行的统一结果对象。",
+        "- 关联、预测与因果解释层级不互相替代。",
+        "- 效应量、区间、P 值、诊断与局限性保留在其对应表格或模块对象中。",
+        "- 未登记的样本量、统计结果、机制或外部可推广性不被补写。",
+        "",
+        "## 模块证据登记",
+        "",
+    ]
+    for module_id, result in results.items():
+        lines.append(
+            f"- `{module_id}`：表格 {len(result.get('tables', []))} 个，"
+            f"图形 {len(result.get('figures', []))} 个，"
+            f"诊断 {len(result.get('diagnostics', []))} 项，"
+            f"局限性 {len(result.get('limitations', []))} 项。"
+        )
+    lines.extend(["", "## 论文级主张", ""])
+    if manuscript.get("enabled") is True:
+        lines.append("- 已启用：只接受方案中预先确认且可解析到结果对象的主张；详见 `02_主张证据边界表.csv`。")
+    else:
+        lines.append("- 未启用：本报告不自动从统计显著性、模型方向或图形生成论文级主张。")
+    path = output_dir / "05_学术报告表述审计.md"
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="生成简要医学统计分析 Word 报告。")
     parser.add_argument("--run-dir", required=True)
@@ -511,6 +550,7 @@ def main() -> int:
     manuscript_claim_rows = write_manuscript_support_artifacts(
         run_dir, plan, manifest, results
     )
+    write_academic_reporting_audit(run_dir, plan, results)
 
     document = Document()
     section = document.sections[0]
@@ -677,7 +717,8 @@ def main() -> int:
         document,
         "本报告仅使用同一运行编号下经验证的统一结果对象生成。"
         f"分析方案指纹为 {manifest.get('analysis_plan_sha256', '')}；"
-        "R 版本与包版本分别记录于 sessionInfo.txt 和 package_versions.csv。",
+        "R 版本与包版本分别记录于 sessionInfo.txt 和 package_versions.csv；"
+        "Python/R 双环境及锁定状态记录于 runtime/environment_manifest.json。",
     )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)

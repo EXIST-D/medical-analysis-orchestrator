@@ -5,6 +5,9 @@ run_module <- function(config, context) {
   event_level <- as.character(parameters$event_level %||% "")
   predictors <- unique(as.character(parameters$predictors %||% character()))
   categorical <- unique(as.character(parameters$categorical %||% character()))
+  separation_strategy <- tolower(as.character(parameters$separation_strategy %||% "fail"))
+  calibration_method <- tolower(as.character(parameters$calibration_method %||% "apparent"))
+  confidence_level <- as.numeric(parameters$confidence_level %||% .95)
   if (!nzchar(outcome) || !nzchar(event_level) || !length(predictors)) {
     stop("Logistic 回归必须指定结局、事件水平和至少一个预测变量。", call. = FALSE)
   }
@@ -29,10 +32,17 @@ run_module <- function(config, context) {
   if (events == 0L || non_events == 0L) stop("有效分析样本中缺少事件或非事件。", call. = FALSE)
   if (nrow(data) <= parameter_count + 5L) stop("Logistic 回归有效样本量不足以支持当前参数数量。", call. = FALSE)
 
-  model <- stats::glm(formula, data = data, family = stats::binomial())
+  fit_warnings <- character()
+  model <- withCallingHandlers(
+    stats::glm(formula, data = data, family = stats::binomial()),
+    warning = function(warning) {
+      fit_warnings <<- c(fit_warnings, conditionMessage(warning))
+      invokeRestart("muffleWarning")
+    }
+  )
   summary_model <- summary(model)
   coefficient_matrix <- summary_model$coefficients
-  confidence <- suppressWarnings(stats::confint.default(model))
+  confidence <- suppressWarnings(stats::confint.default(model, level = confidence_level))
   coefficients <- data.frame(
     term = rownames(coefficient_matrix),
     estimate_log_odds = coefficient_matrix[, "Estimate"],
@@ -55,6 +65,33 @@ run_module <- function(config, context) {
   epv <- min(events, non_events) / max(1L, parameter_count - 1L)
   extreme_probability_n <- sum(predicted < 1e-6 | predicted > 1 - 1e-6)
   huge_coefficient_n <- sum(abs(stats::coef(model)) > 10, na.rm = TRUE)
+  separation_warning <- any(grepl("fitted probabilities numerically 0 or 1", fit_warnings, fixed = TRUE))
+  separation_suspected <- !isTRUE(model$converged) || extreme_probability_n > 0L || huge_coefficient_n > 0L || separation_warning
+  if (separation_suspected && separation_strategy == "fail") {
+    stop(
+      "检测到完全或准完全分离迹象；默认策略已安全停止。请核查数据/模型，或在确认后将 separation_strategy 设为 warn。",
+      call. = FALSE
+    )
+  }
+  if (!calibration_method %in% c("apparent")) {
+    stop("当前仅支持 apparent 校准评估。", call. = FALSE)
+  }
+  safe_prediction <- pmin(pmax(predicted, 1e-6), 1 - 1e-6)
+  calibration_fit <- tryCatch(
+    stats::glm(data$.analysis_event ~ stats::qlogis(safe_prediction), family = stats::binomial()),
+    error = function(e) NULL
+  )
+  calibration_coefficients <- if (is.null(calibration_fit)) c(NA_real_, NA_real_) else stats::coef(calibration_fit)
+  calibration_confidence <- if (is.null(calibration_fit)) matrix(NA_real_, nrow = 2L, ncol = 2L) else suppressWarnings(stats::confint.default(calibration_fit, level = confidence_level))
+  calibration_table <- data.frame(
+    measure = c("校准截距", "校准斜率"),
+    estimate = as.numeric(calibration_coefficients),
+    conf_low = calibration_confidence[, 1],
+    conf_high = calibration_confidence[, 2],
+    target = c(0, 1),
+    method = "表观校准（建模样本内）",
+    stringsAsFactors = FALSE
+  )
   pseudo_r2 <- if (model$null.deviance > 0) 1 - model$deviance / model$null.deviance else NA_real_
   model_summary <- data.frame(
     n = nrow(data),
@@ -70,17 +107,22 @@ run_module <- function(config, context) {
     bic = stats::BIC(model),
     brier_score = brier,
     auc = auc,
+    calibration_intercept = calibration_coefficients[[1]],
+    calibration_slope = calibration_coefficients[[2]],
     stringsAsFactors = FALSE
   )
   diagnostics_table <- data.frame(
-    diagnostic = c("模型收敛", "每参数较少类别事件数", "极端拟合概率数", "绝对值大于10的系数数", "AUC", "Brier分数"),
-    value = c(as.numeric(model$converged), epv, extreme_probability_n, huge_coefficient_n, auc, brier),
-    rule = c("1=收敛", "<10 提示模型不稳定风险", "大于0提示分离风险", "大于0提示分离或尺度问题", "越接近1区分度越高", "越接近0越好"),
+    diagnostic = c("模型收敛", "每参数较少类别事件数", "极端拟合概率数", "绝对值大于10的系数数", "疑似分离处理", "AUC", "Brier分数", "校准截距", "校准斜率"),
+    value = c(as.numeric(model$converged), epv, extreme_probability_n, huge_coefficient_n, separation_strategy, auc, brier, calibration_coefficients[[1]], calibration_coefficients[[2]]),
+    rule = c("1=收敛", "<10 提示模型不稳定风险", "大于0提示分离风险", "大于0提示分离或尺度问题", "默认 fail，warn 仅在用户确认后允许继续", "越接近1区分度越高", "越接近0越好", "理想值为0", "理想值为1"),
     status = c(
       ifelse(model$converged, "pass", "fail"),
       ifelse(epv < 10, "warning", "pass"),
       ifelse(extreme_probability_n > 0, "warning", "pass"),
       ifelse(huge_coefficient_n > 0, "warning", "pass"),
+      ifelse(separation_suspected, ifelse(separation_strategy == "warn", "warning", "fail"), "pass"),
+      "informational",
+      "informational",
       "informational",
       "informational"
     ),
@@ -91,8 +133,8 @@ run_module <- function(config, context) {
   if (subset$n_excluded_missing > 0L) warnings <- c(warnings, paste0("因模型变量缺失排除 ", subset$n_excluded_missing, " 行。"))
   if (!model$converged) warnings <- c(warnings, "模型未收敛。")
   if (epv < 10) warnings <- c(warnings, "较少类别事件数相对于参数数量偏低，估计可能不稳定。")
-  if (extreme_probability_n > 0L || huge_coefficient_n > 0L) {
-    warnings <- c(warnings, "检测到完全或准完全分离迹象；当前版本不自动切换惩罚 Logistic。")
+  if (separation_suspected) {
+    warnings <- c(warnings, "检测到完全或准完全分离迹象；warn 策略下仅输出不稳定的常规 Logistic 结果，不自动替换为惩罚模型。")
   }
 
   ordering <- order(predicted, decreasing = TRUE)
@@ -135,7 +177,9 @@ run_module <- function(config, context) {
     write_result_table(context, "logistic-regression", "01_Logistic回归系数与OR", "Logistic 回归系数与 OR", coefficients),
     write_result_table(context, "logistic-regression", "02_Logistic回归模型摘要", "Logistic 回归模型摘要", model_summary),
     write_result_table(context, "logistic-regression", "03_Logistic回归诊断", "Logistic 回归诊断", diagnostics_table,
-      c("AUC 和 Brier 分数均为建模样本内指标，不代表外部验证性能。"))
+      c("AUC、Brier 和校准指标均为建模样本内指标，不代表外部验证性能。")),
+    write_result_table(context, "logistic-regression", "04_Logistic校准", "Logistic 回归校准评估", calibration_table,
+      c("表观校准使用建模样本本身估计，可能过于乐观；不能替代内部或外部验证。"))
   )
   new_module_result(
     "logistic-regression", "binary-logistic-regression", started_at,
@@ -158,7 +202,7 @@ run_module <- function(config, context) {
         biological_replicates = paste0(nrow(data), " 个独立分析单位"),
         technical_replicates = "不适用",
         center_statistic = "ROC 曲线下面积（AUC）",
-        interval = "当前内部 AUC 未计算置信区间",
+        interval = "当前内部 AUC 未计算置信区间；校准截距和斜率以 95% Wald 区间报告",
         test = "建模样本内 ROC 分析",
         multiple_comparison_correction = "不适用"
       ),
@@ -173,7 +217,7 @@ run_module <- function(config, context) {
     warnings = unique(warnings),
     limitations = c(
       "优势比不等同于风险比。",
-      "当前性能指标来自建模样本内部，未进行交叉验证或外部验证。",
+      "当前性能与校准指标来自建模样本内部，未进行交叉验证或外部验证。",
       "观察性关联不能自动解释为因果效应。"
     ),
     narrative = c(paste0("以 ", outcome, "=", event_level, " 为事件拟合二元 Logistic 回归。")),

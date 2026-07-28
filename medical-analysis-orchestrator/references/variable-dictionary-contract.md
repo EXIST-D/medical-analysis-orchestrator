@@ -16,6 +16,7 @@
 | `missing_n`、`missing_pct` | 缺失情况 |
 | `unique_n` | 非缺失唯一值数 |
 | `value_labels` | 值标签摘要，不输出直接标识值 |
+| `metadata_status` | 标签和值标签的来源状态；普通 CSV 等无元数据格式必须明确标记为不可用，而不是将空值误作“无标签” |
 | `potential_identifier` | 是否可能为直接或准标识符 |
 | `constant` | 是否为常量列 |
 | `needs_confirmation` | 是否需要用户决定类型、角色或编码 |

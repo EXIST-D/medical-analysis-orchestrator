@@ -10,7 +10,7 @@ inspect → recommend → confirm → execute → report
 
 The Skill first inspects files, datasets, variable types, missingness, duplicates, and possible research roles in read-only mode. It then recommends suitable statistical methods from the research question, study design, and observed data structure. R analyses run only after the user explicitly confirms outcomes, variable roles, cleaning rules, reference levels, and model choices.
 
-Current version: `0.0.1`
+Current version: `0.0.4`
 
 Release status: Beta / technical preview
 
@@ -55,17 +55,17 @@ Repository-level documentation is kept separate from the installable Skill in `m
 
 No R packages are installed and no inferential models are run before confirmation.
 
-## Ready Modules in 0.0.1
+## Ready Modules in 0.0.4
 
 | Module | Current capability | Status |
 |---|---|---|
 | `descriptive` | Continuous and categorical descriptive statistics | `ready` |
-| `group-comparison` | Welch t/ANOVA, Wilcoxon/Kruskal–Wallis, chi-square/Fisher | `ready` |
-| `correlation` | Pearson, Spearman, Kendall, and multiplicity correction | `ready` |
-| `linear-regression` | Multiple linear regression, collinearity, and residual diagnostics | `ready` |
-| `logistic-regression` | Binary logistic regression, OR, AUC, Brier score, and ROC | `ready` |
-| `reliability-validity` | Alpha, omega, item analysis, KMO, Bartlett, and criterion associations | `ready` |
-| `factor-analysis` | EFA, parallel analysis, CFA, CR, AVE, and discriminant validity | `ready` |
+| `group-comparison` | Welch t/ANOVA, paired t, Wilcoxon/Kruskal–Wallis, paired Wilcoxon, chi-square/Fisher, and confirmed post-hoc comparisons | `ready` |
+| `correlation` | Pearson, Spearman, Kendall, multiplicity correction, and effective-N matrix | `ready` |
+| `linear-regression` | Multiple linear regression, HC3 robust standard errors, collinearity, and residual diagnostics | `ready` |
+| `logistic-regression` | Binary logistic regression, OR, AUC, Brier score, apparent calibration, ROC, and safe separation handling | `ready` |
+| `reliability-validity` | Alpha, omega, item analysis, KMO, Bartlett, criterion associations, and polychoric support for ordinal items | `ready` |
+| `factor-analysis` | EFA, parallel analysis, CFA, CR, AVE, discriminant validity, and independent-sample split validation | `ready` |
 | `mixed-effects` | Continuous-outcome LMM and binary-outcome GLMM | `ready` |
 
 Registered but non-executable `planned` modules:
@@ -84,7 +84,7 @@ Planned descriptors must not be presented as completed analysis support.
 - Windows 10/11 is the primary validated platform.
 - R `>= 4.3.0`.
 - Python 3.11 or a compatible version.
-- Python orchestration packages: `pandas`, `openpyxl`, `PyYAML`, `python-docx`, and `pyreadstat`.
+- Core Python orchestration packages: `pandas`, `openpyxl`, `PyYAML`, and `python-docx`; `xlrd`, `pyreadstat`, and `pyarrow` are installed only when the input format requires them.
 - R packages are resolved and installed only for confirmed modules.
 
 R dependencies are installed into the Skill-level `.r-library` by default, without modifying the system R library. `.r-library` is a local runtime artifact and is excluded from source distributions by both a release whitelist and `.gitignore`.
@@ -177,7 +177,7 @@ This software does not provide medical advice, diagnosis, or treatment recommend
 
 ## Validation Status
 
-Before the `0.0.1` release, the project completed:
+Before the `0.0.4` release, the project completed:
 
 - 16 automated tests;
 - Skill structure validation;
@@ -187,7 +187,7 @@ Before the `0.0.1` release, the project completed:
 - three-line XLSX, statistical figure, Source Data, and Word report validation;
 - release scans excluding `.r-library`, caches, runtime artifacts, and sensitive information.
 
-The main validated environment is Windows with R 4.6.1 and Python 3.11. Other operating systems, versions, and complex real-world study designs require further validation.
+The main validated environment is Windows with R 4.6.1 and Python 3.11. GitHub Actions provides a Windows + R 4.3/4.4/4.6 contract/R-parse matrix and a LibreOffice Word/XLSX page-rendering smoke test. External validation, real study designs, and cross-version visual baselines still require study-specific review.
 
 ## Originality and Third-Party Dependencies
 
@@ -204,7 +204,7 @@ Bug reports, compatibility feedback, statistical-method suggestions, and feature
 Suggested citation:
 
 ```text
-EXIST-D. medical-analysis-orchestrator (Version 0.0.1) [Computer software].
+EXIST-D. medical-analysis-orchestrator (Version 0.0.4) [Computer software].
 GitHub. https://github.com/EXIST-D/medical-analysis-orchestrator
 ```
 

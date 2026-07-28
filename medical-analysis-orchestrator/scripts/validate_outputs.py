@@ -29,6 +29,10 @@ REQUIRED = {
         "01_数据整理/05_清洁分析数据.csv",
         "01_数据整理/06_清洁分析数据.xlsx",
         "runtime/r_environment.json",
+        "runtime/python_environment.json",
+        "runtime/python_requirements.lock.json",
+        "runtime/renv_status.json",
+        "runtime/environment_manifest.json",
         "analysis_results.rds",
         "analysis_results.json",
         "execution_status.json",
@@ -43,6 +47,9 @@ ALLOWED_RESULT_STATUS = {
     "completed_with_warnings",
     "skipped",
     "failed",
+}
+ALLOWED_DIAGNOSTIC_STATUS = {
+    "pass", "warning", "fail", "not_assessed", "informational"
 }
 REQUIRED_FIGURE_STATISTICS = {
     "n_definition",
@@ -78,13 +85,16 @@ def load_plan(path: Path) -> dict[str, Any]:
     return payload if isinstance(payload, dict) else {}
 
 
-def required_for_mode(mode: str) -> list[str]:
+def required_for_mode(mode: str, plan: dict[str, Any] | None = None) -> list[str]:
     order = ["inspect", "recommend", "execute", "report"]
     required: list[str] = []
     for phase in order:
         required.extend(REQUIRED[phase])
         if phase == mode:
             break
+    visual = ((plan or {}).get("reporting") or {}).get("visual_regression") or {}
+    if mode == "report" and visual.get("enabled", True):
+        required.append("90_最终报告/visual_regression/visual_regression.json")
     return required
 
 
@@ -231,6 +241,10 @@ def validate_result_object(
         for field in ("diagnostic", "value", "rule", "status"):
             if field not in diagnostic:
                 errors.append(f"{module_id} 诊断对象缺少字段：{field}")
+        if diagnostic.get("status") not in ALLOWED_DIAGNOSTIC_STATUS:
+            errors.append(
+                f"{module_id} 诊断对象 status 非法：{diagnostic.get('status')}"
+            )
 
     figures = result.get("figures", [])
     if not isinstance(figures, list):
@@ -354,7 +368,10 @@ def main() -> int:
         print(json.dumps({"valid": False, "errors": [f"运行目录不存在：{run_dir}"]}, ensure_ascii=False))
         return 2
 
-    for relative in required_for_mode(args.mode):
+    plan_path = run_dir / "analysis_plan.yml"
+    plan = load_plan(plan_path) if plan_path.exists() else {}
+
+    for relative in required_for_mode(args.mode, plan):
         if not (run_dir / relative).exists():
             errors.append(f"缺少必需输出：{relative}")
 
@@ -379,17 +396,18 @@ def main() -> int:
             elif artifact.get("sha256") and sha256_file(artifact_path) != artifact["sha256"]:
                 errors.append(f"artifact SHA-256 不一致：{relative}")
 
-    plan_path = run_dir / "analysis_plan.yml"
-    plan = load_plan(plan_path) if plan_path.exists() else {}
     report_contract = reporting_contract(plan)
     if args.mode == "report" and report_contract["manuscript_enabled"]:
         for relative in (
             "90_最终报告/02_主张证据边界表.csv",
             "90_最终报告/03_统计方法与可复现性.md",
             "90_最终报告/04_术语账本.yml",
+            "90_最终报告/05_学术报告表述审计.md",
         ):
             if not (run_dir / relative).is_file():
                 errors.append(f"启用 manuscript_support 后缺少输出：{relative}")
+    if args.mode == "report" and not (run_dir / "90_最终报告/05_学术报告表述审计.md").is_file():
+        errors.append("缺少学术报告表述审计输出。")
     if plan and manifest:
         run_id = (plan.get("run") or {}).get("run_id")
         if run_id and run_id != manifest.get("run_id"):

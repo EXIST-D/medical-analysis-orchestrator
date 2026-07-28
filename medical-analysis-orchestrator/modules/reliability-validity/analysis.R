@@ -6,6 +6,8 @@ run_module <- function(config, context) {
   criterion_variables <- unique(as.character(parameters$criterion_variables %||% character()))
   criterion_method <- tolower(as.character(parameters$criterion_method %||% "spearman"))
   minimum_complete_n <- as.integer(parameters$minimum_complete_n %||% 30L)
+  ordinal_items <- unique(as.character(parameters$ordinal_items %||% character()))
+  correlation_type <- tolower(as.character(parameters$correlation_type %||% "auto"))
 
   if (!length(scales) || is.null(names(scales)) || any(!nzchar(names(scales)))) {
     stop("信效度分析必须用具名 scales 明确每个量表及其条目。", call. = FALSE)
@@ -16,6 +18,12 @@ run_module <- function(config, context) {
 
   all_items <- unique(unlist(scales, use.names = FALSE))
   assert_columns(context$data, c(all_items, criterion_variables), "reliability-validity")
+  if (length(setdiff(ordinal_items, all_items))) {
+    stop("ordinal_items 中存在未纳入 scales 的条目。", call. = FALSE)
+  }
+  if (!correlation_type %in% c("auto", "pearson", "polychoric")) {
+    stop("correlation_type 仅支持 auto、pearson 或 polychoric。", call. = FALSE)
+  }
   reliability_rows <- list()
   item_rows <- list()
   factorability_rows <- list()
@@ -58,12 +66,40 @@ run_module <- function(config, context) {
       warnings = FALSE,
       use = "pairwise"
     ))
+    scale_ordinal_items <- intersect(items, ordinal_items)
+    use_polychoric <- correlation_type == "polychoric" ||
+      (correlation_type == "auto" && length(scale_ordinal_items) == length(items))
+    polychoric_object <- NULL
+    correlation_matrix <- stats::cor(item_data, use = "pairwise.complete.obs")
+    polychoric_alpha <- NA_real_
+    if (use_polychoric) {
+      polychoric_object <- tryCatch(
+        suppressWarnings(psych::polychoric(item_data)),
+        error = function(condition) {
+          warnings <<- c(warnings, paste0(scale_name, " 的多分相关计算失败：", conditionMessage(condition)))
+          NULL
+        }
+      )
+      if (!is.null(polychoric_object$rho) && all(is.finite(polychoric_object$rho))) {
+        correlation_matrix <- polychoric_object$rho
+        polychoric_alpha <- tryCatch(
+          unname(psych::alpha(correlation_matrix, n.obs = complete_n, warnings = FALSE)$total$raw_alpha),
+          error = function(condition) NA_real_
+        )
+      } else {
+        warnings <- c(warnings, paste0(scale_name, " 未能获得有效多分相关矩阵，回退 Pearson 相关。"))
+        use_polychoric <- FALSE
+      }
+    } else if (length(scale_ordinal_items)) {
+      warnings <- c(warnings, paste0(scale_name, " 仅部分条目被标为有序，当前信度使用 Pearson 相关；如全部条目均为有序，请明确 correlation_type=polychoric。"))
+    }
     omega_object <- NULL
     if (compute_omega) {
       omega_object <- tryCatch(
         suppressWarnings(psych::omega(
-          item_data,
+          if (use_polychoric) correlation_matrix else item_data,
           nfactors = 1,
+          n.obs = if (use_polychoric) complete_n else NULL,
           plot = FALSE,
           warnings = FALSE,
           flip = FALSE
@@ -89,6 +125,8 @@ run_module <- function(config, context) {
       n_complete = complete_n,
       cronbach_alpha = raw_alpha,
       standardized_alpha = standardized_alpha,
+      polychoric_alpha = polychoric_alpha,
+      correlation_basis = if (use_polychoric) "polychoric" else "pearson",
       guttman_g6 = unname(alpha_total[["G6(smc)"]]),
       average_interitem_r = unname(alpha_total$average_r),
       signal_noise_ratio = unname(alpha_total[["S/N"]]),
@@ -119,7 +157,6 @@ run_module <- function(config, context) {
       )
     }
 
-    correlation_matrix <- stats::cor(item_data, use = "pairwise.complete.obs")
     kmo <- psych::KMO(correlation_matrix)
     bartlett <- psych::cortest.bartlett(correlation_matrix, n = complete_n)
     factorability_rows[[length(factorability_rows) + 1L]] <- data.frame(
@@ -165,7 +202,7 @@ run_module <- function(config, context) {
         )
       }
     }
-    analysis_objects[[scale_name]] <- list(alpha = alpha_object, omega = omega_object)
+    analysis_objects[[scale_name]] <- list(alpha = alpha_object, omega = omega_object, polychoric = polychoric_object)
   }
 
   reliability_table <- do.call(rbind, reliability_rows)

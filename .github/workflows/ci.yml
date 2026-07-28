@@ -1,0 +1,55 @@
+name: medical-analysis-orchestrator-ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  contract-and-r-parse:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        r: ['4.3', '4.4', '4.6']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ matrix.r }}
+      - name: Install Python smoke-test dependencies
+        run: python -m pip install --disable-pip-version-check PyYAML pandas openpyxl python-docx
+      - name: Run release contract smoke tests
+        run: python -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Parse every R module on Windows
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem medical-analysis-orchestrator/modules -Recurse -Filter *.R | ForEach-Object { $_.FullName }
+          & Rscript -e 'for (file in commandArgs(trailingOnly = TRUE)) parse(file)' $files
+
+  visual-rendering-smoke:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install rendering dependencies
+        run: python -m pip install --disable-pip-version-check openpyxl python-docx PyMuPDF
+      - name: Install LibreOffice
+        shell: pwsh
+        run: choco install libreoffice-fresh --yes --no-progress
+      - name: Generate controlled Word/XLSX fixtures
+        run: python tests/generate_visual_fixtures.py --output visual-fixtures
+      - name: Render Word and XLSX pages
+        run: python medical-analysis-orchestrator/scripts/verify_visual_regression.py --docx visual-fixtures/fixture.docx --xlsx visual-fixtures/fixture.xlsx --output visual-output
+      - name: Require non-empty rendered page fingerprints
+        shell: pwsh
+        run: |
+          $report = Get-Content visual-output/visual_regression.json -Raw | ConvertFrom-Json
+          if ($report.status -ne 'pass' -or $report.artifacts.Count -ne 2) { throw 'Visual rendering did not pass.' }
+          foreach ($artifact in $report.artifacts) { if ($artifact.pages.Count -lt 1) { throw 'No rasterized pages found.' } }

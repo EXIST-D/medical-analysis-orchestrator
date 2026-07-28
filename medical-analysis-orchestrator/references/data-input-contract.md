@@ -1,5 +1,11 @@
 # 数据输入契约
 
+## 格式能力与依赖
+
+执行前必须先记录输入格式能力：`csv/tsv/txt/dat/json/jsonl` 使用基础读取依赖，`xlsx` 使用 `openpyxl`，`xls` 使用 `xlrd`，`sav/dta/sas7bdat/xpt` 使用 `pyreadstat`，`parquet/feather` 使用 `pyarrow`。缺少依赖时只能按确认的运行时策略安装到当前 Python 环境；不应静默尝试其他格式或更改原始文件。
+
+检测结果写入 `runtime/python_environment.json` 与 `runtime/python_requirements.lock.json`。不支持的后缀必须在清洗前拒绝。
+
 ## 支持范围
 
 首版读取 CSV、TSV、TXT、XLSX、XLS、SPSS SAV、Stata DTA、SAS7BDAT、XPT、JSON、JSONL、Parquet 和 Feather。`.dat` 按分隔文本探测；无法可靠识别分隔符时只登记文件，不猜测字段结构。

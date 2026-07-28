@@ -4,6 +4,9 @@ run_module <- function(config, context) {
   outcome <- as.character(parameters$outcome %||% "")
   predictors <- unique(as.character(parameters$predictors %||% character()))
   categorical <- unique(as.character(parameters$categorical %||% character()))
+  robust_se <- isTRUE(parameters$robust_se)
+  robust_se_type <- toupper(as.character(parameters$robust_se_type %||% "HC3"))
+  confidence_level <- as.numeric(parameters$confidence_level %||% .95)
   if (!nzchar(outcome) || !length(predictors)) {
     stop("多元线性回归必须指定结局和至少一个预测变量。", call. = FALSE)
   }
@@ -13,7 +16,8 @@ run_module <- function(config, context) {
   data <- subset$data
   data[[outcome]] <- safe_numeric(data[[outcome]])
   for (variable in intersect(categorical, predictors)) data[[variable]] <- as.factor(data[[variable]])
-  data <- apply_reference_levels(data, config$variables$reference_levels %||% list())
+  references <- parameters$reference_levels %||% config$variables$reference_levels %||% list()
+  data <- apply_reference_levels(data, references)
   model_matrix <- stats::model.matrix(build_formula(outcome, predictors), data = data)
   parameter_count <- ncol(model_matrix)
   if (nrow(data) <= parameter_count + 5L) {
@@ -23,7 +27,30 @@ run_module <- function(config, context) {
   model <- stats::lm(build_formula(outcome, predictors), data = data)
   summary_model <- summary(model)
   coefficient_matrix <- summary_model$coefficients
-  confidence <- suppressMessages(stats::confint(model))
+  confidence <- suppressMessages(stats::confint(model, level = confidence_level))
+  inference_type <- "常规 OLS 标准误"
+  if (robust_se) {
+    if (robust_se_type != "HC3") stop("当前仅支持 HC3 稳健标准误。", call. = FALSE)
+    design <- stats::model.matrix(model)
+    leverage <- stats::hatvalues(model)
+    residuals_for_vcov <- stats::residuals(model)
+    bread <- tryCatch(solve(crossprod(design)), error = function(e) NULL)
+    if (is.null(bread) || any(!is.finite(leverage)) || any(1 - leverage < 1e-10)) {
+      stop("无法计算 HC3 稳健标准误：模型矩阵奇异或存在高杠杆观测。", call. = FALSE)
+    }
+    weighted_design <- design * (residuals_for_vcov / (1 - leverage))
+    robust_vcov <- bread %*% crossprod(weighted_design) %*% bread
+    robust_error <- sqrt(diag(robust_vcov))
+    coefficient_matrix[, "Std. Error"] <- robust_error
+    coefficient_matrix[, "t value"] <- stats::coef(model) / robust_error
+    coefficient_matrix[, "Pr(>|t|)"] <- 2 * stats::pt(abs(coefficient_matrix[, "t value"]), df = stats::df.residual(model), lower.tail = FALSE)
+    critical_value <- stats::qt((1 + confidence_level) / 2, df = stats::df.residual(model))
+    confidence <- cbind(
+      stats::coef(model) - critical_value * robust_error,
+      stats::coef(model) + critical_value * robust_error
+    )
+    inference_type <- "HC3 异方差稳健标准误"
+  }
   coefficients <- data.frame(
     term = rownames(coefficient_matrix),
     estimate = coefficient_matrix[, "Estimate"],
@@ -32,6 +59,7 @@ run_module <- function(config, context) {
     p_value = coefficient_matrix[, "Pr(>|t|)"],
     conf_low = confidence[, 1],
     conf_high = confidence[, 2],
+    inference = inference_type,
     stringsAsFactors = FALSE,
     row.names = NULL
   )
@@ -49,6 +77,7 @@ run_module <- function(config, context) {
     model_p_value = stats::pf(f_stat[[1]], f_stat[[2]], f_stat[[3]], lower.tail = FALSE),
     aic = stats::AIC(model),
     bic = stats::BIC(model),
+    inference = inference_type,
     stringsAsFactors = FALSE
   )
 
@@ -91,7 +120,8 @@ run_module <- function(config, context) {
 
   warnings <- character()
   if (subset$n_excluded_missing > 0L) warnings <- c(warnings, paste0("因模型变量缺失排除 ", subset$n_excluded_missing, " 行。"))
-  if (bp_p < .05) warnings <- c(warnings, "残差存在异方差迹象；解释常规标准误时需谨慎。")
+  if (bp_p < .05 && !robust_se) warnings <- c(warnings, "残差存在异方差迹象；解释常规标准误时需谨慎。")
+  if (robust_se) warnings <- c(warnings, "系数使用 HC3 异方差稳健标准误；点估计仍来自 OLS 模型。")
   if (is.finite(max_vif) && max_vif > 5) warnings <- c(warnings, "检测到较高方差膨胀因子。")
   if (influential_n > 0L) warnings <- c(warnings, paste0("检测到 ", influential_n, " 个潜在高影响观测；未自动删除。"))
   if (alias_detected) warnings <- c(warnings, "模型存在不可识别系数。")
@@ -126,7 +156,7 @@ run_module <- function(config, context) {
   saveRDS(model, model_path)
 
   tables <- list(
-    write_result_table(context, "linear-regression", "01_线性回归系数", "多元线性回归系数", coefficients),
+    write_result_table(context, "linear-regression", "01_线性回归系数", "多元线性回归系数", coefficients, c(paste0("所有回归项统一报告估计值、", confidence_level * 100, "% 置信区间与 P 值；推断类型见 inference 列。"))),
     write_result_table(context, "linear-regression", "02_线性回归模型摘要", "多元线性回归模型摘要", model_summary),
     write_result_table(context, "linear-regression", "03_线性回归诊断", "多元线性回归诊断", diagnostics_table,
       c("异常点和影响点只标记，不自动删除。"))
@@ -160,7 +190,7 @@ run_module <- function(config, context) {
     diagnostics = lapply(seq_len(nrow(diagnostics_table)), function(i) as.list(diagnostics_table[i, ])),
     warnings = unique(warnings),
     limitations = c("观察性回归系数不能自动解释为因果效应。", "当前版本使用完整案例拟合，不执行自动插补。"),
-    narrative = c(paste0("以 ", outcome, " 为结局，纳入 ", length(predictors), " 个预测变量。")),
+    narrative = c(paste0("以 ", outcome, " 为结局，纳入 ", length(predictors), " 个预测变量；", inference_type, "。")),
     sample = list(
       n_input = subset$n_input,
       n_complete = subset$n_complete,

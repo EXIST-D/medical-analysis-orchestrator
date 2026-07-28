@@ -32,6 +32,171 @@ ALLOWED_INTERPRETATION_LEVELS = {
     "prediction",
     "causal",
 }
+ALLOWED_INPUT_FORMATS = {
+    "auto", "csv", "tsv", "txt", "dat", "json", "jsonl", "xlsx", "xls",
+    "sav", "dta", "sas7bdat", "xpt", "parquet", "feather",
+}
+ALLOWED_DIAGNOSTIC_STATUS = {"pass", "warning", "fail", "not_assessed", "informational"}
+ALLOWED_RENV_MODES = {False, "off", "auto", "snapshot", "restore"}
+MODULE_PARAMETER_FIELDS = {
+    "descriptive": {"continuous", "categorical", "stratify_by"},
+    "group-comparison": {
+        "group", "continuous", "categorical", "paired", "pair_id",
+        "continuous_method", "posthoc", "posthoc_adjust_method", "confidence_level",
+    },
+    "correlation": {"variables", "method", "adjust_method", "confidence_level"},
+    "linear-regression": {
+        "outcome", "predictors", "categorical", "reference_levels", "robust_se", "robust_se_type",
+        "confidence_level",
+    },
+    "logistic-regression": {
+        "outcome", "event_level", "predictors", "categorical", "reference_levels",
+        "separation_strategy", "calibration_method",
+        "confidence_level",
+    },
+    "reliability-validity": {
+        "scales", "compute_omega", "criterion_variables", "criterion_method",
+        "minimum_complete_n", "ordinal_items", "correlation_type",
+    },
+    "factor-analysis": {"items", "efa", "cfa", "validation"},
+    "mixed-effects": {
+        "family", "outcome", "event_level", "fixed_effects", "interactions",
+        "categorical", "reference_levels", "group", "random_intercept",
+        "random_slopes", "correlated_random_effects", "time_variable", "reml", "optimizer",
+    },
+}
+
+
+def reject_unknown_keys(
+    payload: Any, allowed: set[str], label: str, errors: list[str]
+) -> None:
+    if payload is None:
+        return
+    if not isinstance(payload, dict):
+        errors.append(f"{label} must be a mapping")
+        return
+    for key in sorted(set(payload) - allowed):
+        errors.append(f"Unsupported configuration field: {label}.{key}")
+
+
+def validate_config_shape(config: dict[str, Any], errors: list[str]) -> None:
+    """Fail closed for fields not covered by the public configuration contract."""
+    reject_unknown_keys(
+        config,
+        {"schema_version", "status", "generated_at_utc", "candidate_variables", "recommendations", "limitations", "run", "input", "research", "variables", "data_handling", "analysis", "runtime", "reporting", "decisions_required", "approval"},
+        "root", errors,
+    )
+    sections = {
+        "run": {"run_id", "mode", "output_dir", "random_seed"},
+        "input": {"path", "dataset", "sheet", "format", "encoding", "read_only", "expected_sha256", "profile_sha256", "prepared_data_path"},
+        "research": {"primary_question", "design", "primary_objective", "estimand_or_target", "secondary_objectives"},
+        "variables": {"id", "outcomes", "exposures", "covariates", "categorical", "grouping", "time", "event", "reference_levels", "labels", "units"},
+        "data_handling": {"auto_actions", "confirmed_actions", "missing_value_codes", "missing_strategy", "duplicate_strategy", "outlier_strategy", "exclusions", "transformations", "recodes", "merge_plan", "multiple_testing"},
+        "analysis": {"modules", "methods", "parameters", "diagnostics", "sensitivity_analyses"},
+        "runtime": {"language", "r_executable", "minimum_version", "auto_install_missing_packages", "library_scope", "project_library", "repository", "use_renv", "project_dir", "python_executable", "minimum_python_version", "auto_install_missing_python_packages", "python_repository"},
+        "reporting": {"language", "table_formats", "figure_contract", "manuscript_support", "build_word_report", "suppress_small_cells", "small_cell_threshold", "include_patient_level_data", "visual_regression", "word", "workbook"},
+        "approval": {"confirmed", "confirmed_by", "confirmed_at", "plan_sha256", "notes"},
+    }
+    for name, allowed in sections.items():
+        if name in config:
+            reject_unknown_keys(config.get(name), allowed, name, errors)
+    variables = config.get("variables") or {}
+    reject_unknown_keys(variables.get("outcomes"), {"primary", "secondary"}, "variables.outcomes", errors)
+    data_handling = config.get("data_handling") or {}
+    reject_unknown_keys(data_handling.get("multiple_testing"), {"method", "family_definition"}, "data_handling.multiple_testing", errors)
+    analysis = config.get("analysis") or {}
+    parameters = analysis.get("parameters") or {}
+    if not isinstance(parameters, dict):
+        errors.append("analysis.parameters must be a mapping")
+    else:
+        for module_id, value in parameters.items():
+            allowed = MODULE_PARAMETER_FIELDS.get(str(module_id))
+            if allowed is None:
+                errors.append(f"Unsupported configuration field: analysis.parameters.{module_id}")
+            else:
+                reject_unknown_keys(value, allowed, f"analysis.parameters.{module_id}", errors)
+    reporting = config.get("reporting") or {}
+    reject_unknown_keys(
+        reporting.get("figure_contract"),
+        {"profile", "backend", "formats", "width_mm", "height_mm", "dpi", "require_source_data", "require_statistics_metadata", "require_editable_text"},
+        "reporting.figure_contract", errors,
+    )
+    reject_unknown_keys(
+        reporting.get("manuscript_support"),
+        {"enabled", "separate_results_and_interpretation", "include_methods_reproducibility", "build_terminology_ledger", "claims", "terminology"},
+        "reporting.manuscript_support", errors,
+    )
+    reject_unknown_keys(reporting.get("visual_regression"), {"enabled", "require_renderer"}, "reporting.visual_regression", errors)
+    reject_unknown_keys(reporting.get("word"), {"east_asia_font", "latin_font", "body_size_pt", "line_spacing", "first_line_indent_chars"}, "reporting.word", errors)
+    reject_unknown_keys(reporting.get("workbook"), {"east_asia_font", "latin_font", "body_size_pt", "style", "use_color"}, "reporting.workbook", errors)
+
+
+def is_string_list(value: Any) -> bool:
+    return isinstance(value, list) and all(isinstance(item, str) and item.strip() for item in value)
+
+
+def validate_confidence_level(value: Any, label: str, errors: list[str]) -> None:
+    if not isinstance(value, (int, float)) or not 0 < float(value) < 1:
+        errors.append(f"{label} must be a number strictly between 0 and 1")
+
+
+def validate_module_parameter_types(
+    config: dict[str, Any], selected_modules: list[str], errors: list[str]
+) -> None:
+    parameters = (config.get("analysis") or {}).get("parameters") or {}
+    for module_id in selected_modules:
+        values = parameters.get(module_id)
+        if not isinstance(values, dict):
+            errors.append(f"analysis.parameters.{module_id} must be a mapping")
+            continue
+        if module_id == "group-comparison":
+            for field in ("continuous", "categorical"):
+                if not is_string_list(values.get(field)) and values.get(field) != []:
+                    errors.append(f"analysis.parameters.group-comparison.{field} must be a string list")
+            if not isinstance(values.get("paired"), bool):
+                errors.append("analysis.parameters.group-comparison.paired must be boolean")
+            validate_confidence_level(values.get("confidence_level", .95), "analysis.parameters.group-comparison.confidence_level", errors)
+        elif module_id == "correlation":
+            if not is_string_list(values.get("variables")) or len(values.get("variables") or []) < 2:
+                errors.append("analysis.parameters.correlation.variables must contain at least two names")
+            if str(values.get("method") or "").lower() not in {"pearson", "spearman", "kendall"}:
+                errors.append("analysis.parameters.correlation.method is unsupported")
+            validate_confidence_level(values.get("confidence_level", .95), "analysis.parameters.correlation.confidence_level", errors)
+        elif module_id == "linear-regression":
+            if not is_string_list(values.get("predictors")):
+                errors.append("analysis.parameters.linear-regression.predictors must be a non-empty string list")
+            if values.get("robust_se") is True and str(values.get("robust_se_type") or "HC3").upper() != "HC3":
+                errors.append("analysis.parameters.linear-regression.robust_se_type currently supports HC3 only")
+            validate_confidence_level(values.get("confidence_level", .95), "analysis.parameters.linear-regression.confidence_level", errors)
+        elif module_id == "logistic-regression":
+            if not is_string_list(values.get("predictors")):
+                errors.append("analysis.parameters.logistic-regression.predictors must be a non-empty string list")
+            if str(values.get("calibration_method") or "apparent").lower() != "apparent":
+                errors.append("analysis.parameters.logistic-regression.calibration_method currently supports apparent only")
+            validate_confidence_level(values.get("confidence_level", .95), "analysis.parameters.logistic-regression.confidence_level", errors)
+        elif module_id == "reliability-validity":
+            if not isinstance(values.get("scales"), dict) or not values.get("scales"):
+                errors.append("analysis.parameters.reliability-validity.scales must be a non-empty mapping")
+            if not is_string_list(values.get("ordinal_items", [])) and values.get("ordinal_items") != []:
+                errors.append("analysis.parameters.reliability-validity.ordinal_items must be a string list")
+            if str(values.get("correlation_type") or "auto").lower() not in {"auto", "pearson", "polychoric"}:
+                errors.append("analysis.parameters.reliability-validity.correlation_type is unsupported")
+        elif module_id == "factor-analysis":
+            for section, allowed in {
+                "efa": {"enabled", "factors", "extraction", "rotation", "parallel_analysis", "parallel_iterations", "loading_cutoff"},
+                "cfa": {"enabled", "model", "estimator", "ordered", "missing", "std_lv", "modification_index_threshold"},
+                "validation": {"enabled", "split_method", "train_fraction", "stratify_by"},
+            }.items():
+                reject_unknown_keys(values.get(section), allowed, f"analysis.parameters.factor-analysis.{section}", errors)
+            validation = values.get("validation") or {}
+            if not isinstance(validation.get("enabled"), bool):
+                errors.append("analysis.parameters.factor-analysis.validation.enabled must be boolean")
+            if validation.get("enabled") is True:
+                if str(validation.get("split_method") or "").lower() != "random":
+                    errors.append("analysis.parameters.factor-analysis.validation.split_method currently supports random only")
+                fraction = validation.get("train_fraction")
+                if not isinstance(fraction, (int, float)) or not .5 < float(fraction) < .9:
+                    errors.append("analysis.parameters.factor-analysis.validation.train_fraction must be between 0.5 and 0.9")
 
 
 def load_structured(path: Path) -> dict[str, Any]:
@@ -229,10 +394,19 @@ def validate(
     mode = forced_mode or nested_get(config, "run.mode") or "inspect"
     fingerprint = plan_fingerprint(config)
 
+    validate_config_shape(config, errors)
+
     if mode not in ALLOWED_MODES:
         errors.append(f"run.mode must be one of {sorted(ALLOWED_MODES)}")
     if nested_get(config, "input.read_only") is not True:
         errors.append("input.read_only must be true")
+    input_format = str(nested_get(config, "input.format") or "auto").lower()
+    if input_format not in ALLOWED_INPUT_FORMATS:
+        errors.append(f"input.format must be one of {sorted(ALLOWED_INPUT_FORMATS)}")
+    if str(nested_get(config, "input.dataset") or "").strip():
+        errors.append(
+            "input.dataset is reserved for future multi-file execution and must be empty"
+        )
     seed = nested_get(config, "run.random_seed")
     if not isinstance(seed, int) or seed <= 0:
         errors.append("run.random_seed must be a positive integer")
@@ -297,6 +471,8 @@ def validate(
         except Exception as exc:
             errors.append(f"Cannot read module descriptor {module_id}: {exc}")
 
+    validate_module_parameter_types(config, selected_modules, errors)
+
     if "survival" in selected_modules:
         if not nested_get(config, "variables.time"):
             errors.append("Survival analysis requires variables.time")
@@ -353,6 +529,34 @@ def validate(
             errors.append(
                 "Binomial mixed-effects analysis requires event_level"
             )
+
+    if "group-comparison" in selected_modules:
+        group_params = nested_get(config, "analysis.parameters.group-comparison") or {}
+        if group_params.get("paired") is True and not group_params.get("pair_id"):
+            errors.append("Paired group comparison requires analysis.parameters.group-comparison.pair_id")
+        if group_params.get("paired") not in {True, False}:
+            errors.append("analysis.parameters.group-comparison.paired must be boolean")
+        if str(group_params.get("posthoc") or "none").lower() not in {"none", "auto", "tukey", "dunn"}:
+            errors.append("analysis.parameters.group-comparison.posthoc is unsupported")
+    if "linear-regression" in selected_modules:
+        linear_params = nested_get(config, "analysis.parameters.linear-regression") or {}
+        if linear_params.get("robust_se") not in {True, False}:
+            errors.append("analysis.parameters.linear-regression.robust_se must be boolean")
+    if "logistic-regression" in selected_modules:
+        logistic_params = nested_get(config, "analysis.parameters.logistic-regression") or {}
+        if str(logistic_params.get("separation_strategy") or "fail").lower() not in {"fail", "warn"}:
+            errors.append("analysis.parameters.logistic-regression.separation_strategy must be fail or warn")
+    runtime = config.get("runtime") or {}
+    if runtime.get("use_renv", "auto") not in ALLOWED_RENV_MODES:
+        errors.append("runtime.use_renv must be false, off, auto, snapshot, or restore")
+    if runtime.get("auto_install_missing_python_packages", True) not in {True, False}:
+        errors.append("runtime.auto_install_missing_python_packages must be boolean")
+    if data_handling := config.get("data_handling"):
+        if data_handling.get("merge_plan"):
+            errors.append("data_handling.merge_plan is not implemented; keep it empty")
+    analysis_section = config.get("analysis") or {}
+    if analysis_section.get("methods"):
+        errors.append("analysis.methods is not implemented; select registered analysis.modules instead")
 
     validate_reporting_contract(config, errors, warnings)
 

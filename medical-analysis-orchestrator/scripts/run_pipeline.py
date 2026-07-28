@@ -57,6 +57,40 @@ def package_install_plan(runtime_dir: Path) -> list[dict[str, str]]:
     return result
 
 
+def python_install_plan(runtime_dir: Path) -> list[str]:
+    profile = json.loads((runtime_dir / "python_environment.json").read_text(encoding="utf-8"))
+    if not profile.get("supported"):
+        raise SystemExit(
+            "当前 Python 环境不支持输入格式：" + str(profile.get("input_format"))
+        )
+    return [str(name) for name in profile.get("missing_packages", [])]
+
+
+def normalized_renv_mode(config: dict[str, Any]) -> str:
+    value = (config.get("runtime") or {}).get("use_renv", "auto")
+    if value is False or str(value).lower() in {"false", "off", "disabled"}:
+        return "off"
+    return "snapshot" if str(value).lower() == "auto" else str(value).lower()
+
+
+def manage_renv(
+    runtime_profile: dict[str, Any], config: dict[str, Any], run_dir: Path, mode: str
+) -> None:
+    selected = runtime_profile.get("selected") or {}
+    packages = [str(item["name"]) for item in runtime_profile.get("required_packages", [])]
+    run(
+        [
+            str(selected["path"]), str(SCRIPT_DIR / "manage_renv.R"),
+            "--mode", mode,
+            "--project", str(run_dir),
+            "--library", str(runtime_profile["project_library"]),
+            "--repository", str((config.get("runtime") or {}).get("repository", "https://cloud.r-project.org")),
+            "--packages", ",".join(packages),
+            "--status", str(run_dir / "runtime" / "renv_status.json"),
+        ]
+    )
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="运行已确认的医学统计分析闭环。")
     parser.add_argument("--config", required=True)
@@ -82,9 +116,51 @@ def main() -> int:
         config_path = destination
 
     run([sys.executable, str(SCRIPT_DIR / "validate_config.py"), str(config_path), "--mode", "execute"])
-    run([sys.executable, str(SCRIPT_DIR / "prepare_data.py"), "--config", str(config_path)])
 
     runtime_dir = run_dir / "runtime"
+    input_path = Path(str((config.get("input") or {}).get("path"))).expanduser()
+    if not input_path.is_absolute():
+        input_path = (config_path.parent / input_path).resolve()
+    python_profile_path = runtime_dir / "python_environment.json"
+    run(
+        [
+            sys.executable,
+            str(SCRIPT_DIR / "detect_python_environment.py"),
+            "--input",
+            str(input_path),
+            "--output",
+            str(python_profile_path),
+        ]
+    )
+    python_missing = python_install_plan(runtime_dir)
+    if python_missing:
+        if args.no_install or not bool((config.get("runtime") or {}).get("auto_install_missing_python_packages", True)):
+            raise SystemExit("缺少 Python 依赖：" + ", ".join(python_missing))
+        run(
+            [
+                sys.executable,
+                str(SCRIPT_DIR / "install_python_packages.py"),
+                "--profile",
+                str(python_profile_path),
+                "--log-dir",
+                str(run_dir / "99_运行记录"),
+                "--repository",
+                str((config.get("runtime") or {}).get("python_repository", "https://pypi.org/simple")),
+                "--allow-install",
+                "true",
+            ]
+        )
+        run(
+            [
+                sys.executable,
+                str(SCRIPT_DIR / "detect_python_environment.py"),
+                "--input",
+                str(input_path),
+                "--output",
+                str(python_profile_path),
+            ]
+        )
+    run([sys.executable, str(SCRIPT_DIR / "prepare_data.py"), "--config", str(config_path)])
     run(
         [
             sys.executable,
@@ -144,6 +220,22 @@ def main() -> int:
                 str(runtime_dir),
             ]
         )
+        runtime_profile = json.loads((runtime_dir / "r_environment.json").read_text(encoding="utf-8"))
+
+    renv_mode = normalized_renv_mode(config)
+    if renv_mode == "restore":
+        manage_renv(runtime_profile, config, run_dir, "restore")
+        run(
+            [
+                sys.executable,
+                str(SCRIPT_DIR / "detect_r_environment.py"),
+                "--config",
+                str(config_path),
+                "--output",
+                str(runtime_dir),
+            ]
+        )
+        runtime_profile = json.loads((runtime_dir / "r_environment.json").read_text(encoding="utf-8"))
 
     prepared_path = run_dir / "01_数据整理" / "05_清洁分析数据.csv"
     run(
@@ -159,6 +251,18 @@ def main() -> int:
             str(config_path),
             "--data",
             str(prepared_path),
+        ]
+    )
+    if renv_mode in {"snapshot", "auto"}:
+        manage_renv(runtime_profile, config, run_dir, "snapshot")
+    elif renv_mode == "off":
+        manage_renv(runtime_profile, config, run_dir, "off")
+    run(
+        [
+            sys.executable,
+            str(SCRIPT_DIR / "write_environment_manifest.py"),
+            "--runtime-dir", str(runtime_dir),
+            "--output", str(runtime_dir / "environment_manifest.json"),
         ]
     )
     run(
@@ -183,6 +287,27 @@ def main() -> int:
     )
     if not args.skip_report and bool((config.get("reporting") or {}).get("build_word_report", True)):
         run([sys.executable, str(SCRIPT_DIR / "build_report.py"), "--run-dir", str(run_dir)])
+        visual_config = (config.get("reporting") or {}).get("visual_regression") or {}
+        if visual_config.get("enabled", True):
+            analysis_results = json.loads((run_dir / "analysis_results.json").read_text(encoding="utf-8"))
+            xlsx_paths = [
+                str(run_dir / str(table["xlsx_path"]))
+                for result in analysis_results.values()
+                for table in result.get("tables", [])
+                if table.get("xlsx_path")
+            ]
+            visual_output = run_dir / "90_最终报告" / "visual_regression"
+            command = [
+                sys.executable, str(SCRIPT_DIR / "verify_visual_regression.py"),
+                "--docx", str(run_dir / "90_最终报告" / "01_医学统计分析简要报告.docx"),
+                "--output", str(visual_output),
+            ]
+            for xlsx_path in xlsx_paths:
+                command.extend(["--xlsx", xlsx_path])
+            run(command)
+            visual_result = json.loads((visual_output / "visual_regression.json").read_text(encoding="utf-8"))
+            if visual_config.get("require_renderer") is True and visual_result.get("status") == "unavailable":
+                raise SystemExit("报告配置要求页面渲染，但当前环境未发现 LibreOffice 渲染器。")
         run(
             [
                 sys.executable,

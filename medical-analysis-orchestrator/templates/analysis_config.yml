@@ -70,29 +70,40 @@ analysis:
       continuous: []
       categorical: []
       paired: false
+      pair_id: null
       continuous_method: "auto"
       posthoc: "none"
+      posthoc_adjust_method: "holm"
+      confidence_level: 0.95
     correlation:
       variables: []
       method: "spearman"
       adjust_method: "holm"
+      confidence_level: 0.95
     linear-regression:
       outcome: null
       predictors: []
       categorical: []
       robust_se: false
+      robust_se_type: "HC3"
+      confidence_level: 0.95
     logistic-regression:
       outcome: null
       event_level: null
       predictors: []
       categorical: []
       reference_levels: {}
+      separation_strategy: "fail"
+      calibration_method: "apparent"
+      confidence_level: 0.95
     reliability-validity:
       scales: {}
       compute_omega: true
       criterion_variables: []
       criterion_method: "spearman"
       minimum_complete_n: 30
+      ordinal_items: []
+      correlation_type: "auto"
     factor-analysis:
       items: []
       efa:
@@ -111,6 +122,11 @@ analysis:
         missing: "fiml"
         std_lv: true
         modification_index_threshold: 10
+      validation:
+        enabled: false
+        split_method: "random"
+        train_fraction: 0.7
+        stratify_by: null
     mixed-effects:
       family: "gaussian"
       outcome: null
@@ -139,6 +155,10 @@ runtime:
   repository: "https://cloud.r-project.org"
   use_renv: "auto"
   project_dir: ""
+  python_executable: "auto"
+  minimum_python_version: "3.10.0"
+  auto_install_missing_python_packages: true
+  python_repository: "https://pypi.org/simple"
 
 reporting:
   language: "zh-CN"
@@ -167,6 +187,9 @@ reporting:
   suppress_small_cells: true
   small_cell_threshold: 5
   include_patient_level_data: false
+  visual_regression:
+    enabled: true
+    require_renderer: false
   word:
     east_asia_font: "宋体"
     latin_font: "Times New Roman"

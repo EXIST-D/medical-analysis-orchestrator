@@ -36,7 +36,7 @@ footnotes
 source_module
 ```
 
-每个诊断对象至少包含 `diagnostic`、`value`、`rule` 和 `status`，可选包含 `message`。`status` 使用 `pass`、`warning`、`fail` 或 `not_assessed`。存在 `warning` 或 `fail` 时，模块必须在 `warnings` 或 `limitations` 中给出可供报告器使用的解释；诊断失败时不得生成无条件肯定结论。
+每个诊断对象至少包含 `diagnostic`、`value`、`rule` 和 `status`，可选包含 `message`。`status` 只能使用 `pass`、`warning`、`fail`、`not_assessed` 或 `informational`。存在 `warning` 或 `fail` 时，模块必须在 `warnings` 或 `limitations` 中给出可供报告器使用的解释；诊断失败时不得生成无条件肯定结论。`informational` 只用于没有方向性阈值的描述性性能指标，不能伪装为通过诊断。
 
 每个图形对象至少包含：
 

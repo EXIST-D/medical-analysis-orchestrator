@@ -763,6 +763,8 @@ def main() -> int:
                 "original_name": row["variable"],
                 "analysis_name": row["variable"],
                 "label": "",
+                "value_labels": "",
+                "metadata_status": "unavailable_in_tabular_source",
                 "source_dtype": row["source_dtype"],
                 "inferred_type": row["inferred_type"],
                 "candidate_roles": row["candidate_roles"],

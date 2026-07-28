@@ -4,6 +4,7 @@ run_module <- function(config, context) {
   variables <- unique(as.character(parameters$variables %||% character()))
   method <- tolower(as.character(parameters$method %||% "spearman"))
   adjust_method <- as.character(parameters$adjust_method %||% "holm")
+  confidence_level <- as.numeric(parameters$confidence_level %||% .95)
   if (!method %in% c("pearson", "spearman", "kendall")) {
     stop("相关方法必须是 pearson、spearman 或 kendall。", call. = FALSE)
   }
@@ -13,6 +14,17 @@ run_module <- function(config, context) {
 
   coefficient_matrix <- stats::cor(numeric_data, use = "pairwise.complete.obs", method = method)
   matrix_table <- data.frame(variable = rownames(coefficient_matrix), coefficient_matrix, check.names = FALSE)
+  effective_n_matrix <- outer(
+    variables,
+    variables,
+    Vectorize(function(first, second) {
+      sum(stats::complete.cases(numeric_data[, c(first, second), drop = FALSE]))
+    })
+  )
+  dimnames(effective_n_matrix) <- list(variables, variables)
+  effective_n_table <- data.frame(
+    variable = rownames(effective_n_matrix), effective_n_matrix, check.names = FALSE
+  )
 
   pair_rows <- list()
   combinations <- utils::combn(variables, 2L, simplify = FALSE)
@@ -24,7 +36,7 @@ run_module <- function(config, context) {
       warnings <- c(warnings, paste0(pair[[1]], " 与 ", pair[[2]], " 有效样本不足或存在常量。"))
       next
     }
-    test <- suppressWarnings(stats::cor.test(frame[[1]], frame[[2]], method = method, exact = FALSE))
+    test <- suppressWarnings(stats::cor.test(frame[[1]], frame[[2]], method = method, exact = FALSE, conf.level = confidence_level))
     confidence <- if (!is.null(test$conf.int)) unname(test$conf.int) else c(NA_real_, NA_real_)
     pair_rows[[length(pair_rows) + 1L]] <- data.frame(
       variable_1 = pair[[1]],
@@ -54,9 +66,14 @@ run_module <- function(config, context) {
       c("矩阵按变量对使用可用案例计算；各变量对有效样本量可能不同。")
     ),
     write_result_table(
-      context, "correlation", "02_相关性检验明细",
+      context, "correlation", "02_相关有效样本量矩阵",
+      "相关分析的变量对有效样本量矩阵", effective_n_table,
+      c("每个单元格为对应变量对的成对完整案例数；应与相关系数矩阵一并解读。")
+    ),
+    write_result_table(
+      context, "correlation", "03_相关性检验明细",
       "相关性检验明细", details,
-      c(paste0("P 值使用 ", adjust_method, " 方法在本相关分析族内校正。"))
+      c(paste0("P 值使用 ", adjust_method, " 方法在本相关分析族内校正；可用时报告 ", confidence_level * 100, "% 置信区间。"))
     )
   )
   new_module_result(
