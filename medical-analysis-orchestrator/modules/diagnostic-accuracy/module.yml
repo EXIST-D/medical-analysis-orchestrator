@@ -1,0 +1,31 @@
+schema_version: "1.1"
+id: "diagnostic-accuracy"
+name_zh: "诊断试验准确性"
+status: "ready"
+version: "0.1.0"
+output_order: 22
+output_dir: "22_诊断试验准确性"
+methods:
+  - "roc-analysis"
+  - "diagnostic-threshold-performance"
+  - "delong-auc-comparison"
+entrypoint: "analysis.R"
+required_packages:
+  - name: "pROC"
+    minimum_version: "1.19.0"
+  - name: "openxlsx2"
+    minimum_version: "1.20.0"
+optional_packages: []
+required_config:
+  - "analysis.parameters.diagnostic-accuracy.outcome"
+  - "analysis.parameters.diagnostic-accuracy.event_level"
+  - "analysis.parameters.diagnostic-accuracy.markers"
+outputs:
+  tables:
+    - "01_ROC与AUC"
+    - "02_诊断阈值性能"
+    - "03_AUC成对比较"
+  figures:
+    - "01_ROC曲线比较"
+  model_objects:
+    - "01_ROC分析对象.rds"

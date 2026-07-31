@@ -1,0 +1,27 @@
+schema_version: "1.1"
+id: "sem"
+name_zh: "结构方程模型"
+status: "ready"
+version: "0.1.0"
+output_order: 27
+output_dir: "27_结构方程模型"
+methods:
+  - "structural-equation-model"
+  - "indirect-effect"
+entrypoint: "analysis.R"
+required_packages:
+  - name: "lavaan"
+    minimum_version: "0.6.20"
+  - name: "openxlsx2"
+    minimum_version: "1.20.0"
+optional_packages: []
+required_config:
+  - "analysis.parameters.sem.model"
+outputs:
+  tables:
+    - "01_SEM拟合指标"
+    - "02_SEM参数估计"
+    - "03_SEM解释方差"
+  figures: []
+  model_objects:
+    - "01_SEM模型.rds"

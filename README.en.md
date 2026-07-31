@@ -10,7 +10,7 @@ inspect → recommend → confirm → execute → report
 
 The Skill first inspects files, datasets, variable types, missingness, duplicates, and possible research roles in read-only mode. It then recommends suitable statistical methods from the research question, study design, and observed data structure. R analyses run only after the user explicitly confirms outcomes, variable roles, cleaning rules, reference levels, and model choices.
 
-Current version: `0.0.4`
+Current version: `0.0.5`
 
 Release status: Beta / technical preview
 
@@ -55,7 +55,7 @@ Repository-level documentation is kept separate from the installable Skill in `m
 
 No R packages are installed and no inferential models are run before confirmation.
 
-## Ready Modules in 0.0.4
+## Ready Modules in 0.0.5
 
 | Module | Current capability | Status |
 |---|---|---|
@@ -67,17 +67,17 @@ No R packages are installed and no inferential models are run before confirmatio
 | `reliability-validity` | Alpha, omega, item analysis, KMO, Bartlett, criterion associations, and polychoric support for ordinal items | `ready` |
 | `factor-analysis` | EFA, parallel analysis, CFA, CR, AVE, discriminant validity, and independent-sample split validation | `ready` |
 | `mixed-effects` | Continuous-outcome LMM and binary-outcome GLMM | `ready` |
-
-Registered but non-executable `planned` modules:
-
-- `generalized-regression`;
-- `gee`;
-- `measurement-invariance`;
-- `survival`;
-- `network`;
-- `bayesian`.
-
-Planned descriptors must not be presented as completed analysis support.
+| `missing-data` | Missingness audit and MICE multiple-imputation object | `ready` |
+| `generalized-regression` | Ordinal logistic, multinomial logistic, Poisson, and negative-binomial regression | `ready` |
+| `survival` | Kaplan–Meier, log-rank, Cox regression, and proportional-hazards diagnostics | `ready` |
+| `diagnostic-accuracy` | ROC, AUC, thresholds, sensitivity, specificity, and likelihood ratios | `ready` |
+| `gee` | Gaussian, binomial, and Poisson GEE | `ready` |
+| `measurement-invariance` | Configural, metric, scalar, and strict measurement invariance | `ready` |
+| `competing-risks` | Cumulative incidence, Gray test, and Fine–Gray regression | `ready` |
+| `propensity-score` | IPTW, overlap weighting, balance diagnostics, and weighted effects | `ready` |
+| `sem` | Structural equation models, fit indices, standardized parameters, and indirect effects | `ready` |
+| `network` | EBICglasso networks, centrality, bridge strength, and bootstrap assessment | `ready` |
+| `bayesian` | Bayesian-network structure learning, edge stability, and whitelist/blacklist constraints | `ready` |
 
 ## Requirements
 
@@ -151,6 +151,17 @@ data_profile.csv
 07_信度与效度分析/
 08_探索性与验证性因子分析/
 09_混合效应模型/
+10_缺失数据与多重插补/
+20_广义回归/
+21_基础生存分析/
+22_诊断试验准确性/
+23_广义估计方程/
+24_测量不变性/
+25_竞争风险/
+26_倾向评分/
+27_结构方程模型/
+30_网络分析/
+31_贝叶斯网络/
 90_最终报告/
 99_运行记录/
 sessionInfo.txt
@@ -177,9 +188,9 @@ This software does not provide medical advice, diagnosis, or treatment recommend
 
 ## Validation Status
 
-Before the `0.0.4` release, the project completed:
+Before the `0.0.5` release, the project completed:
 
-- 16 automated tests;
+- 32 local end-to-end qualification tests and 3 repository release smoke tests;
 - Skill structure validation;
 - Python, R, and YAML syntax checks;
 - local documentation-link checks;
@@ -204,7 +215,7 @@ Bug reports, compatibility feedback, statistical-method suggestions, and feature
 Suggested citation:
 
 ```text
-EXIST-D. medical-analysis-orchestrator (Version 0.0.4) [Computer software].
+EXIST-D. medical-analysis-orchestrator (Version 0.0.5) [Computer software].
 GitHub. https://github.com/EXIST-D/medical-analysis-orchestrator
 ```
 

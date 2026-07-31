@@ -108,6 +108,21 @@ def build_recommendations(
         ),
     ]
 
+    if float((profile.get("summary") or {}).get("overall_missing_pct") or 0) > 0:
+        recommendations.append(
+            method(
+                "missing-data",
+                "missingness-audit",
+                "数据中存在缺失值，应先审计缺失模式并由研究者确认处理策略。",
+                [
+                    "确认结构性缺失、特殊缺失编码和分析变量",
+                    "若采用多重插补，确认插补模型、次数和下游 Rubin 规则合并",
+                ],
+                ["观测数据不能自动证明 MCAR、MAR 或 MNAR", "不得用单个插补数据集冒充多重插补推断"],
+                "primary",
+            )
+        )
+
     if candidates["group"]:
         recommendations.append(
             method(
@@ -216,6 +231,18 @@ def build_recommendations(
                 ["混合模型与 GEE 回答的效应层级不同"],
             )
         )
+        recommendations.append(
+            method(
+                "gee",
+                "population-average-longitudinal-model",
+                "检测到候选受试者 ID 与时间/访视变量，可在研究目标为群体平均效应时考虑 GEE。",
+                [
+                    "确认结局分布、聚类 ID、时间顺序和工作相关结构",
+                    "确认研究问题需要群体平均效应而非个体特异效应",
+                ],
+                ["聚类数过少时稳健标准误可能不可靠", "GEE 与混合模型的效应解释不同"],
+            )
+        )
 
     if len(candidates["scale_item"]) >= 3:
         recommendations.append(
@@ -244,6 +271,46 @@ def build_recommendations(
         )
 
     normalized_question = research_question.lower()
+    if re.search(r"诊断|roc|auc|敏感度|灵敏度|特异度|diagnostic", normalized_question):
+        recommendations.append(
+            method(
+                "diagnostic-accuracy",
+                "diagnostic-accuracy",
+                "研究问题涉及诊断标志物、ROC、AUC 或阈值性能。",
+                ["确认金标准、阳性事件、标志物方向和预先指定阈值", "区分数据驱动阈值与外部验证阈值"],
+                ["PPV/NPV 依赖患病率", "同一样本选阈值并评估会产生乐观偏倚"],
+            )
+        )
+    if re.search(r"竞争风险|competing risk|fine.?gray|累积发生", normalized_question):
+        recommendations.append(
+            method(
+                "competing-risks",
+                "competing-risk-analysis",
+                "研究问题涉及目标事件与竞争事件。",
+                ["确认删失、目标事件和所有竞争事件编码", "确认需要累积发生函数、原因别风险还是亚分布风险"],
+                ["Fine–Gray 亚分布风险比不能与原因别 HR 混用"],
+            )
+        )
+    if re.search(r"倾向评分|propensity|iptw|overlap weight|因果效应", normalized_question):
+        recommendations.append(
+            method(
+                "propensity-score",
+                "propensity-score-weighting",
+                "研究问题明确涉及观察性处理效应或倾向评分。",
+                ["确认处理时间、基线混杂变量、estimand 与权重类型", "审查共同支持、极端权重和加权后平衡"],
+                ["只能平衡已测量混杂", "因果解释需要额外识别假设"],
+            )
+        )
+    if re.search(r"结构方程|sem|路径分析|中介效应|间接效应", normalized_question):
+        recommendations.append(
+            method(
+                "sem",
+                "structural-equation-model",
+                "研究问题涉及结构方程、路径或间接效应。",
+                ["提供理论驱动的 lavaan 模型语法", "确认估计量、时间顺序、间接效应和验证策略"],
+                ["整体拟合良好不能证明因果方向或模型唯一"],
+            )
+        )
     if re.search(r"网络|network|bridge|桥接", normalized_question):
         recommendations.append(
             method(
@@ -471,6 +538,59 @@ def main() -> int:
                     "time_variable": None,
                     "reml": True,
                     "optimizer": "bobyqa",
+                },
+                "missing-data": {
+                    "variables": [], "method": "audit", "imputations": 5,
+                    "iterations": 10, "minimum_complete_n": 20,
+                },
+                "generalized-regression": {
+                    "family": "ordinal", "outcome": None, "predictors": [],
+                    "categorical": [], "reference_levels": {},
+                    "outcome_reference": None, "offset": None,
+                    "confidence_level": 0.95,
+                },
+                "survival": {
+                    "time": None, "event": None, "event_level": None,
+                    "group": None, "predictors": [], "categorical": [],
+                    "reference_levels": {}, "confidence_level": 0.95,
+                },
+                "diagnostic-accuracy": {
+                    "outcome": None, "event_level": None, "markers": [],
+                    "thresholds": {}, "direction": "auto", "confidence_level": 0.95,
+                },
+                "gee": {
+                    "family": "gaussian", "outcome": None, "event_level": None,
+                    "id": None, "time": None, "predictors": [], "categorical": [],
+                    "reference_levels": {}, "correlation_structure": "exchangeable",
+                    "confidence_level": 0.95,
+                },
+                "measurement-invariance": {
+                    "items": [], "group": None, "model": "", "ordered": [],
+                    "estimator": "MLR", "missing": "fiml",
+                    "levels": ["configural", "metric", "scalar", "strict"],
+                },
+                "competing-risks": {
+                    "time": None, "status": None, "event_code": None,
+                    "censor_code": "0", "group": None, "covariates": [],
+                    "categorical": [], "confidence_level": 0.95,
+                },
+                "propensity-score": {
+                    "treatment": None, "treated_level": None, "covariates": [],
+                    "categorical": [], "weight_type": "overlap", "estimand": "ATO",
+                    "outcome": None, "outcome_type": "continuous", "event_level": None,
+                    "confidence_level": 0.95,
+                },
+                "sem": {
+                    "model": "", "estimator": "MLR", "ordered": [],
+                    "missing": "fiml", "std_lv": True, "bootstrap_iterations": 0,
+                },
+                "network": {
+                    "nodes": [], "correlation": "spearman", "tuning": 0.5,
+                    "bootstrap_iterations": 100, "communities": {},
+                },
+                "bayesian": {
+                    "nodes": [], "algorithm": "hc", "bootstrap_iterations": 100,
+                    "strength_threshold": 0.85, "whitelist": [], "blacklist": [],
                 },
             },
             "diagnostics": [],

@@ -1,7 +1,7 @@
 schema_version: "1.1"
 id: "generalized-regression"
 name_zh: "扩展广义回归"
-status: "planned"
+status: "ready"
 version: "0.1.0"
 output_order: 20
 output_dir: "20_扩展广义回归"
@@ -11,18 +11,23 @@ methods:
   - "poisson"
   - "negative-binomial"
 entrypoint: "analysis.R"
-required_packages: []
-optional_packages:
-  - "ordinal"
-  - "MASS"
-  - "VGAM"
+required_packages:
+  - name: "MASS"
+    minimum_version: "7.3.60"
+  - name: "nnet"
+    minimum_version: "7.3.19"
+  - name: "openxlsx2"
+    minimum_version: "1.20.0"
+optional_packages: []
 required_config:
-  - "variables.outcomes.primary"
+  - "analysis.parameters.generalized-regression.family"
+  - "analysis.parameters.generalized-regression.outcome"
+  - "analysis.parameters.generalized-regression.predictors"
 outputs:
   tables:
-    - "扩展回归估计"
-    - "扩展回归诊断"
-  figures:
-    - "扩展回归诊断图"
+    - "01_广义回归系数"
+    - "02_广义回归模型摘要"
+    - "03_广义回归诊断"
+  figures: []
   model_objects:
-    - "扩展回归模型.rds"
+    - "01_广义回归模型.rds"

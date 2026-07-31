@@ -33,6 +33,17 @@ MODULE_TITLES = {
     "reliability-validity": "信度与效度分析",
     "factor-analysis": "探索性与验证性因子分析",
     "mixed-effects": "混合效应模型",
+    "missing-data": "缺失数据与多重插补",
+    "generalized-regression": "广义回归",
+    "survival": "基础生存分析",
+    "diagnostic-accuracy": "诊断试验准确性",
+    "gee": "广义估计方程",
+    "measurement-invariance": "测量不变性",
+    "competing-risks": "竞争风险分析",
+    "propensity-score": "倾向评分分析",
+    "sem": "结构方程模型",
+    "network": "网络分析",
+    "bayesian": "贝叶斯网络",
 }
 
 

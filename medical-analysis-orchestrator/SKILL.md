@@ -1,6 +1,6 @@
 ---
 name: medical-analysis-orchestrator
-description: 通用医学数据分析编排 Skill。用于读取用户指定的 CSV、Excel、DAT、SPSS、Stata、SAS、JSON 等医学或问卷数据，先以只读方式完成数据盘点、变量字典、质量报告和分析建议，再在用户明确确认结局、变量、清洗规则和统计方案后，自动发现 R、按模块安装项目级依赖、执行描述性统计、单因素分析、相关分析、多元线性回归、Logistic 回归、信效度分析、EFA/CFA 或混合效应模型，验证统一结果对象，并输出三线表 XLSX、由 R 生成且带 Source Data 的图形和指定中文格式的 Word 报告；可选生成投稿图形包、主张—证据—边界表、术语账本和统计方法可复现性摘要。网络分析等复杂方法仅作为后续可选模块，不是默认流程。
+description: 通用医学数据分析编排 Skill。用于读取 CSV、Excel、DAT、SPSS、Stata、SAS、JSON 等医学或问卷数据，先只读完成数据盘点、变量字典、质量报告和方法建议，再在用户确认研究问题、结局、变量、清洗规则和统计方案后，自动发现 R、按模块安装项目级依赖，执行常规比较与回归、缺失数据与多重插补、生存与纵向分析、诊断准确性、心理测量与结构方程、倾向评分、网络或贝叶斯网络分析，验证统一结果对象，并输出三线表 XLSX、由 R 生成且带 Source Data 的图形和指定中文格式的 Word 报告。复杂方法始终按研究问题显式触发，不是默认流程。
 ---
 
 # 通用医学数据分析编排
@@ -102,8 +102,19 @@ python scripts/recommend_analysis.py --profile "<run目录>/data_profile.json" -
 - `reliability-validity`：Cronbach’s α、McDonald’s ω、条目分析、KMO、Bartlett、可选效标关联，以及有序条目的多分相关支持。
 - `factor-analysis`：EFA、平行分析、CFA、拟合指标、组合信度、AVE、区分效度、修改指数审计和可选 EFA/CFA 独立样本划分。
 - `mixed-effects`：连续结局 LMM 与二分类结局 GLMM，支持随机截距/斜率、交互项和拟合诊断。
+- `missing-data`：缺失比例审计与 MICE 多重插补对象；不把单个插补数据集当作正式推断。
+- `generalized-regression`：有序 Logistic、多项 Logistic、Poisson 和负二项回归。
+- `survival`：Kaplan–Meier、log-rank、Cox 回归与比例风险诊断。
+- `diagnostic-accuracy`：ROC、AUC、阈值性能和 DeLong AUC 比较。
+- `gee`：Gaussian、Binomial、Poisson GEE 和工作相关结构审计。
+- `measurement-invariance`：配置、度量、标量/阈值与严格不变性。
+- `competing-risks`：累积发生函数、Gray 检验和 Fine–Gray 回归。
+- `propensity-score`：IPTW/重叠权重、共同支持、协变量平衡和加权效应。
+- `sem`：结构方程、路径和已在模型中显式定义的间接效应。
+- `network`：正则化偏相关网络、中心性/桥接强度和 Bootstrap 边稳定性。
+- `bayesian`：约束结构学习、Bootstrap 边强度与平均贝叶斯网络。
 
-`generalized-regression`、`gee`、`measurement-invariance`、`survival`、`network`、`bayesian` 仍是后续扩展，不得以 `planned` 描述符生成正式结果。
+所有模块均为可选模块；不得仅因数据中存在相应变量而自动运行复杂分析。
 
 ## 3. 确认方案
 
@@ -172,6 +183,17 @@ python scripts/run_pipeline.py --config "<run目录>/analysis_plan.yml"
 07_信度与效度分析/
 08_探索性与验证性因子分析/
 09_混合效应模型/
+10_缺失数据与多重插补/
+20_扩展广义回归/
+21_基础生存分析/
+22_诊断试验准确性/
+23_广义估计方程/
+24_测量不变性/
+25_竞争风险分析/
+26_倾向评分分析/
+27_结构方程模型/
+30_网络分析/
+31_贝叶斯网络/
 90_最终报告/
 99_运行记录/
 runtime/
@@ -202,4 +224,4 @@ Word 正文中文宋体、英文和数字 Times New Roman、小四 12 pt、1.5 �
 6. 添加成功、拒绝和端到端测试；
 7. 通过验证后才把状态改为 `ready`。
 
-网络分析等复杂模块最后接入，且始终由研究问题和已确认方案触发。
+网络、贝叶斯网络、倾向评分和结构方程等复杂模块始终由研究问题和已确认方案显式触发。

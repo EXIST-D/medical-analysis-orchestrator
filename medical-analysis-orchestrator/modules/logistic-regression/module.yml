@@ -23,6 +23,7 @@ outputs:
     - "01_Logistic回归系数与OR"
     - "02_Logistic回归模型摘要"
     - "03_Logistic回归诊断"
+    - "04_Logistic校准"
   figures:
     - "01_ROC曲线"
   model_objects:

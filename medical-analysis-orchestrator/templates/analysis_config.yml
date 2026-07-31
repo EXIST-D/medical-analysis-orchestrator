@@ -142,6 +142,100 @@ analysis:
       time_variable: null
       reml: true
       optimizer: "bobyqa"
+    missing-data:
+      variables: []
+      method: "audit"
+      imputations: 5
+      iterations: 10
+      minimum_complete_n: 20
+    generalized-regression:
+      family: "ordinal"
+      outcome: null
+      predictors: []
+      categorical: []
+      reference_levels: {}
+      outcome_reference: null
+      offset: null
+      confidence_level: 0.95
+    survival:
+      time: null
+      event: null
+      event_level: null
+      group: null
+      predictors: []
+      categorical: []
+      reference_levels: {}
+      confidence_level: 0.95
+    diagnostic-accuracy:
+      outcome: null
+      event_level: null
+      markers: []
+      thresholds: {}
+      direction: "auto"
+      confidence_level: 0.95
+    gee:
+      family: "gaussian"
+      outcome: null
+      event_level: null
+      id: null
+      time: null
+      predictors: []
+      categorical: []
+      reference_levels: {}
+      correlation_structure: "exchangeable"
+      confidence_level: 0.95
+    measurement-invariance:
+      items: []
+      group: null
+      model: ""
+      ordered: []
+      estimator: "MLR"
+      missing: "fiml"
+      levels:
+        - "configural"
+        - "metric"
+        - "scalar"
+        - "strict"
+    competing-risks:
+      time: null
+      status: null
+      event_code: null
+      censor_code: "0"
+      group: null
+      covariates: []
+      categorical: []
+      confidence_level: 0.95
+    propensity-score:
+      treatment: null
+      treated_level: null
+      covariates: []
+      categorical: []
+      weight_type: "overlap"
+      estimand: "ATO"
+      outcome: null
+      outcome_type: "continuous"
+      event_level: null
+      confidence_level: 0.95
+    sem:
+      model: ""
+      estimator: "MLR"
+      ordered: []
+      missing: "fiml"
+      std_lv: true
+      bootstrap_iterations: 0
+    network:
+      nodes: []
+      correlation: "spearman"
+      tuning: 0.5
+      bootstrap_iterations: 100
+      communities: {}
+    bayesian:
+      nodes: []
+      algorithm: "hc"
+      bootstrap_iterations: 100
+      strength_threshold: 0.85
+      whitelist: []
+      blacklist: []
   diagnostics: []
   sensitivity_analyses: []
 

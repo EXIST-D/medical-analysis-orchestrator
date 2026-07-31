@@ -41,11 +41,22 @@ analysis.parameters.logistic-regression
 analysis.parameters.reliability-validity
 analysis.parameters.factor-analysis
 analysis.parameters.mixed-effects
+analysis.parameters.missing-data
+analysis.parameters.generalized-regression
+analysis.parameters.survival
+analysis.parameters.diagnostic-accuracy
+analysis.parameters.gee
+analysis.parameters.measurement-invariance
+analysis.parameters.competing-risks
+analysis.parameters.propensity-score
+analysis.parameters.sem
+analysis.parameters.network
+analysis.parameters.bayesian
 ```
 
 模块描述符中的 `required_config` 会在执行前动态校验。顶层区块、已实现模块参数及 EFA/CFA 的嵌套参数采用失败即拒绝的白名单校验：未登记字段、未实现的参数或无效值不得静默忽略。
 
-扩展模块还执行专门的确认校验：信效度模块要求具名量表和每量表至少 3 个条目；有序条目的多分相关只能用于已登记量表条目；EFA 要求确认因子数，CFA 要求明确 `lavaan` 模型语法；启用 EFA/CFA 独立划分时，每个子样本均需满足最小样本量；混合效应模型要求结局、固定效应和分组变量，二分类模型还必须确认事件水平。
+扩展模块还执行专门的确认校验：信效度模块要求具名量表和每量表至少 3 个条目；有序条目的多分相关只能用于已登记量表条目；EFA 要求确认因子数，CFA/SEM/测量不变性要求明确 `lavaan` 模型语法；启用 EFA/CFA 独立划分时，每个子样本均需满足最小样本量；混合效应与 GEE 要求结局、效应变量和聚类结构，二分类模型还必须确认事件水平；生存与竞争风险要求明确时间、事件/状态和删失编码；诊断准确性要求金标准事件和标志物；倾向评分要求处理水平和预先指定基线协变量；网络与贝叶斯网络要求至少 3 个节点及受限的 Bootstrap 参数。
 
 ## 输入、依赖与可复现性
 

@@ -1,0 +1,30 @@
+schema_version: "1.1"
+id: "propensity-score"
+name_zh: "倾向评分分析"
+status: "ready"
+version: "0.1.0"
+output_order: 26
+output_dir: "26_倾向评分分析"
+methods:
+  - "inverse-probability-weighting"
+  - "overlap-weighting"
+entrypoint: "analysis.R"
+required_packages:
+  - name: "survey"
+    minimum_version: "4.4.0"
+  - name: "openxlsx2"
+    minimum_version: "1.20.0"
+optional_packages: []
+required_config:
+  - "analysis.parameters.propensity-score.treatment"
+  - "analysis.parameters.propensity-score.treated_level"
+  - "analysis.parameters.propensity-score.covariates"
+outputs:
+  tables:
+    - "01_倾向评分与权重概况"
+    - "02_协变量平衡"
+    - "03_加权效应估计"
+  figures:
+    - "01_倾向评分重叠图"
+  model_objects:
+    - "01_倾向评分分析对象.rds"

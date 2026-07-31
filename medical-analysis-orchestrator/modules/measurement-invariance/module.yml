@@ -1,10 +1,10 @@
 schema_version: "1.1"
 id: "measurement-invariance"
 name_zh: "测量不变性"
-status: "planned"
+status: "ready"
 version: "0.1.0"
-output_order: 22
-output_dir: "22_测量不变性"
+output_order: 24
+output_dir: "24_测量不变性"
 methods:
   - "configural-invariance"
   - "metric-invariance"
@@ -12,16 +12,18 @@ methods:
   - "strict-invariance"
 entrypoint: "analysis.R"
 required_packages:
-  - "lavaan"
-optional_packages:
-  - "semTools"
+  - name: "lavaan"
+    minimum_version: "0.6.20"
+  - name: "openxlsx2"
+    minimum_version: "1.20.0"
+optional_packages: []
 required_config:
   - "analysis.parameters.measurement-invariance.items"
   - "analysis.parameters.measurement-invariance.group"
 outputs:
   tables:
-    - "测量不变性拟合比较"
-    - "测量不变性参数约束"
+    - "01_测量不变性拟合比较"
+    - "02_测量不变性差异"
   figures: []
   model_objects:
-    - "测量不变性模型.rds"
+    - "01_测量不变性模型.rds"

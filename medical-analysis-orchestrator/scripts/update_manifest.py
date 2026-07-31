@@ -61,6 +61,28 @@ def module_from_path(relative: Path) -> str:
         return "factor-analysis"
     if text.startswith("09_混合效应模型/"):
         return "mixed-effects"
+    if text.startswith("10_缺失数据与多重插补/"):
+        return "missing-data"
+    if text.startswith("20_扩展广义回归/"):
+        return "generalized-regression"
+    if text.startswith("21_基础生存分析/"):
+        return "survival"
+    if text.startswith("22_诊断试验准确性/"):
+        return "diagnostic-accuracy"
+    if text.startswith("23_广义估计方程/"):
+        return "gee"
+    if text.startswith("24_测量不变性/"):
+        return "measurement-invariance"
+    if text.startswith("25_竞争风险分析/"):
+        return "competing-risks"
+    if text.startswith("26_倾向评分分析/"):
+        return "propensity-score"
+    if text.startswith("27_结构方程模型/"):
+        return "sem"
+    if text.startswith("30_网络分析/"):
+        return "network"
+    if text.startswith("31_贝叶斯网络/"):
+        return "bayesian"
     if text.startswith("90_最终报告/"):
         return "report"
     if text.startswith("99_运行记录/") or text.startswith("runtime/"):
