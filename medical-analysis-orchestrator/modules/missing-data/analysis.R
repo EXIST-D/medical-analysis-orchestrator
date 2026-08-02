@@ -76,11 +76,12 @@ run_module <- function(config, context) {
     context, "missingness_proportion", missing_table
   )
   plot_missingness <- function() {
+    palette <- medical_figure_palette()
     ordering <- order(missing_table$missing_percent, decreasing = TRUE)
     graphics::barplot(
       missing_table$missing_percent[ordering],
       names.arg = missing_table$variable[ordering],
-      las = 2, col = "grey75", border = "black",
+      las = 2, col = palette[["accent"]], border = NA,
       ylab = "缺失比例（%）", main = "变量缺失比例"
     )
   }

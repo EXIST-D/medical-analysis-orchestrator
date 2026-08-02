@@ -219,22 +219,28 @@ run_module <- function(config, context) {
     context, "mixed_effects_diagnostics", figure_source
   )
   plot_mixed_diagnostics <- function() {
+    palette <- medical_figure_palette()
     old_par <- graphics::par(mfrow = c(1, 2), mar = c(4, 4, 3, 1))
     on.exit(graphics::par(old_par), add = TRUE)
     graphics::plot(
       figure_source$fitted_value, figure_source$pearson_residual,
-      xlab = "拟合值", ylab = "Pearson残差", main = "残差与拟合值"
+      xlab = "拟合值", ylab = "Pearson残差", main = "残差与拟合值",
+      col = palette[["accent"]], pch = 16, cex = .55
     )
-    graphics::abline(h = 0, lty = 2, col = "grey50")
+    graphics::abline(h = 0, lty = 2, col = palette[["neutral"]])
     if (family_name == "gaussian") {
-      stats::qqnorm(figure_source$pearson_residual, main = "残差Q-Q图")
-      stats::qqline(figure_source$pearson_residual, col = "grey50")
+      stats::qqnorm(
+        figure_source$pearson_residual, main = "残差Q-Q图",
+        col = palette[["accent"]], pch = 16, cex = .55
+      )
+      stats::qqline(figure_source$pearson_residual, col = palette[["neutral"]])
     } else {
       graphics::plot(
         figure_source$fitted_value,
         jitter(figure_source$observed_outcome, amount = .03),
         xlab = "预测概率", ylab = "观察结局",
-        main = "预测概率与观察结局"
+        main = "预测概率与观察结局",
+        col = palette[["accent"]], pch = 16, cex = .55
       )
     }
   }

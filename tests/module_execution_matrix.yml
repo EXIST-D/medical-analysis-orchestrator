@@ -1,0 +1,252 @@
+schema_version: "1.0"
+modules:
+  descriptive:
+    shard: core
+    dataset: synthetic_matrix
+    expected_method_id: descriptive-statistics
+    parameters:
+      continuous: [age, bmi, score, x1]
+      categorical: [treatment, outcome]
+      stratify_by: null
+  group-comparison:
+    shard: core
+    dataset: synthetic_matrix
+    expected_method_id: univariate-group-comparison
+    parameters:
+      group: treatment
+      continuous: [age, score]
+      categorical: [outcome]
+      paired: false
+      pair_id: null
+      continuous_method: auto
+      posthoc: none
+  correlation:
+    shard: core
+    dataset: synthetic_matrix
+    expected_method_id: spearman-correlation
+    parameters:
+      variables: [x1, x2, x3, x4]
+      method: spearman
+      adjust_method: holm
+  linear-regression:
+    shard: core
+    dataset: synthetic_matrix
+    expected_method_id: multiple-linear-regression
+    parameters:
+      outcome: continuous_outcome
+      predictors: [treatment, age, baseline, x1]
+      categorical: [treatment]
+      reference_levels: {treatment: control}
+      robust_se: false
+      robust_se_type: HC3
+      confidence_level: 0.95
+  logistic-regression:
+    shard: core
+    dataset: synthetic_matrix
+    expected_method_id: binary-logistic-regression
+    parameters:
+      outcome: outcome
+      event_level: "1"
+      predictors: [treatment, age, baseline, x1]
+      categorical: [treatment]
+      reference_levels: {treatment: control}
+      separation_strategy: fail
+      calibration_method: apparent
+      confidence_level: 0.95
+  reliability-validity:
+    shard: measurement
+    dataset: synthetic_matrix
+    expected_method_id: scale-reliability-validity
+    parameters:
+      scales:
+        matrix_scale: [item1, item2, item3, item4, item5, item6, item7, item8]
+      compute_omega: true
+      criterion_variables: [age]
+      criterion_method: spearman
+      minimum_complete_n: 30
+      ordinal_items: []
+      correlation_type: pearson
+  factor-analysis:
+    shard: measurement
+    dataset: synthetic_matrix
+    expected_method_id: efa
+    parameters:
+      items: [item1, item2, item3, item4, item5, item6, item7, item8]
+      efa:
+        enabled: true
+        factors: 1
+        extraction: minres
+        rotation: oblimin
+        parallel_analysis: true
+        parallel_iterations: 20
+        loading_cutoff: 0.30
+      cfa:
+        enabled: false
+        model: null
+        estimator: MLR
+        ordered: []
+        missing: fiml
+        std_lv: true
+        modification_index_threshold: 10
+      validation:
+        enabled: false
+        split_method: random
+        train_fraction: 0.70
+        stratify_by: null
+  mixed-effects:
+    shard: measurement
+    dataset: synthetic_matrix
+    expected_method_id: linear-mixed-effects
+    parameters:
+      family: gaussian
+      outcome: score
+      event_level: null
+      fixed_effects: [visit, treatment, age]
+      interactions: []
+      categorical: [treatment]
+      reference_levels: {treatment: control}
+      group: subject_id
+      random_intercept: true
+      random_slopes: []
+      correlated_random_effects: true
+      time_variable: visit
+      reml: true
+      optimizer: bobyqa
+  missing-data:
+    shard: clinical
+    dataset: synthetic_matrix
+    expected_method_id: missingness-audit
+    parameters:
+      variables: [age, bmi, baseline, treatment]
+      method: audit
+      imputations: 3
+      iterations: 3
+      minimum_complete_n: 20
+  generalized-regression:
+    shard: clinical
+    dataset: synthetic_matrix
+    expected_method_id: poisson
+    parameters:
+      family: poisson
+      outcome: count_outcome
+      predictors: [treatment, age, baseline]
+      categorical: [treatment]
+      reference_levels: {treatment: control}
+      outcome_reference: null
+      offset: person_time
+      confidence_level: 0.95
+  survival:
+    shard: clinical
+    dataset: synthetic_matrix
+    expected_method_id: kaplan-meier-and-cox
+    parameters:
+      time: follow_time
+      event: event
+      event_level: "1"
+      group: treatment
+      predictors: [treatment, age, baseline]
+      categorical: [treatment]
+      reference_levels: {treatment: control}
+      confidence_level: 0.95
+  diagnostic-accuracy:
+    shard: clinical
+    dataset: synthetic_matrix
+    expected_method_id: roc-diagnostic-accuracy
+    parameters:
+      outcome: outcome
+      event_level: "1"
+      markers: [marker1, marker2]
+      thresholds: {marker1: 0.5}
+      direction: auto
+      confidence_level: 0.95
+  propensity-score:
+    shard: clinical
+    dataset: synthetic_matrix
+    expected_method_id: overlap-propensity-score
+    parameters:
+      treatment: treatment
+      treated_level: treated
+      covariates: [age, bmi, baseline]
+      categorical: []
+      weight_type: overlap
+      estimand: ATO
+      outcome: continuous_outcome
+      outcome_type: continuous
+      event_level: null
+      confidence_level: 0.95
+  gee:
+    shard: advanced
+    dataset: synthetic_matrix
+    expected_method_id: gaussian-gee
+    parameters:
+      family: gaussian
+      outcome: score
+      event_level: null
+      id: subject_id
+      time: visit
+      predictors: [visit, treatment, age]
+      categorical: [treatment]
+      reference_levels: {treatment: control}
+      correlation_structure: exchangeable
+      confidence_level: 0.95
+  measurement-invariance:
+    shard: advanced
+    dataset: synthetic_matrix
+    expected_method_id: multi-group-measurement-invariance
+    parameters:
+      items: [item1, item2, item3, item4]
+      group: measurement_group
+      model: "factor1 =~ item1 + item2 + item3 + item4"
+      ordered: []
+      estimator: MLR
+      missing: fiml
+      levels: [configural, metric, scalar, strict]
+  competing-risks:
+    shard: advanced
+    dataset: synthetic_matrix
+    expected_method_id: cumulative-incidence-and-fine-gray
+    parameters:
+      time: competing_time
+      status: competing_status
+      event_code: "1"
+      censor_code: "0"
+      group: treatment
+      covariates: [age, treatment, x1]
+      categorical: [treatment]
+      confidence_level: 0.95
+  sem:
+    shard: advanced
+    dataset: synthetic_matrix
+    expected_method_id: structural-equation-model
+    parameters:
+      model: |-
+        factor1 =~ item1 + item2 + item3 + item4
+        mediator ~ a*factor1 + age
+        sem_outcome ~ b*mediator + c*factor1
+        indirect := a*b
+      estimator: MLR
+      ordered: []
+      missing: fiml
+      std_lv: true
+      bootstrap_iterations: 0
+  network:
+    shard: advanced
+    dataset: synthetic_matrix
+    expected_method_id: regularized-partial-correlation-network
+    parameters:
+      nodes: [x1, x2, x3, x4]
+      correlation: pearson
+      tuning: 0.5
+      bootstrap_iterations: 20
+      communities: {C1: [x1, x2], C2: [x3, x4]}
+  bayesian:
+    shard: advanced
+    dataset: synthetic_matrix
+    expected_method_id: bayesian-network-structure-learning
+    parameters:
+      nodes: [x1, x2, x3, x4]
+      algorithm: hc
+      bootstrap_iterations: 20
+      strength_threshold: 0.75
+      whitelist: [{from: x1, to: x2}]
+      blacklist: [{from: x2, to: x1}]

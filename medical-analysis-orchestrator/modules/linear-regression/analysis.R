@@ -140,9 +140,16 @@ run_module <- function(config, context) {
     context, "linear_diagnostics", figure_source
   )
   plot_linear_diagnostics <- function() {
+    palette <- medical_figure_palette()
     old_par <- graphics::par(mfrow = c(2, 2), mar = c(4, 4, 3, 1))
     on.exit(graphics::par(old_par), add = TRUE)
-    try(graphics::plot(model), silent = TRUE)
+    try(
+      graphics::plot(
+        model, col = palette[["accent"]], pch = 16, cex = .55,
+        caption = c("残差-拟合", "Q-Q", "尺度-位置", "残差-杠杆")
+      ),
+      silent = TRUE
+    )
   }
   figure_exports <- export_r_figure(
     config,

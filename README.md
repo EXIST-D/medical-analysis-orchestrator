@@ -26,7 +26,7 @@ Skill 先以只读方式识别文件、数据集、变量类型、缺失、重�
 
 ## 默认学术绘图模板
 
-当前默认图形模板为 `medical-academic-v1`：由 R 完成绘图、预览和导出，采用白底、Arial、无面板网格线和克制的蓝/橙/灰配色；每张图同时登记 Source Data、统计元数据和解释边界。它覆盖描述性统计、组间比较、相关分析、回归、信效度、因子分析、纵向模型、生存、诊断准确性、倾向评分、SEM、网络和贝叶斯网络等当前模块。
+当前默认图形模板为 `medical-academic-v1`：由 R 完成绘图、预览和导出，采用白底、Arial、无面板网格线和克制的蓝/橙/灰配色；每张生产图同时登记 Source Data、统计元数据、模板标识和解释边界。凡模块默认生成图形，均通过同一共享导出器应用该模板；各模块是否默认生成图形见下表。没有默认图形的模块仍输出完整表格，不会为了装饰报告而强制绘图。
 
 ![medical-academic-v1 默认模板总览](medical-analysis-orchestrator/assets/figure-template/medical-academic-v1-contact-sheet.png)
 
@@ -84,27 +84,27 @@ medical-analysis-orchestrator/
 
 ## 0.0.5 可执行模块
 
-| 模块 | 当前能力 | 状态 |
-|---|---|---|
-| `descriptive` | 连续变量与分类变量描述性统计 | `ready` |
-| `group-comparison` | Welch t/ANOVA、配对 t、Wilcoxon/Kruskal–Wallis、配对 Wilcoxon、χ²/Fisher 与确认后事后比较 | `ready` |
-| `correlation` | Pearson、Spearman、Kendall、多重校正和有效样本量矩阵 | `ready` |
-| `linear-regression` | 多元线性回归、HC3 稳健标准误、共线性和残差诊断 | `ready` |
-| `logistic-regression` | 二元 Logistic 回归、OR、AUC、Brier、表观校准、ROC 和分离安全处理 | `ready` |
-| `reliability-validity` | α、ω、条目分析、KMO、Bartlett、效标关联和有序条目多分相关 | `ready` |
-| `factor-analysis` | EFA、平行分析、CFA、CR、AVE、区分效度和独立样本划分验证 | `ready` |
-| `mixed-effects` | 连续结局 LMM 与二分类结局 GLMM | `ready` |
-| `missing-data` | 缺失模式审计与 MICE 多重插补对象 | `ready` |
-| `generalized-regression` | 有序 Logistic、多项 Logistic、Poisson 与负二项回归 | `ready` |
-| `survival` | Kaplan–Meier、Log-rank、Cox 回归与比例风险诊断 | `ready` |
-| `diagnostic-accuracy` | ROC、AUC、阈值、灵敏度、特异度与似然比 | `ready` |
-| `gee` | Gaussian、Binomial 与 Poisson GEE | `ready` |
-| `measurement-invariance` | 配置、度量、标量与严格测量不变性 | `ready` |
-| `competing-risks` | 累积发生函数、Gray 检验与 Fine–Gray 回归 | `ready` |
-| `propensity-score` | IPTW、Overlap weighting、平衡诊断与加权效应 | `ready` |
-| `sem` | 结构方程模型、拟合指标、标准化参数与间接效应 | `ready` |
-| `network` | EBICglasso 网络、中心性、桥接强度与 Bootstrap | `ready` |
-| `bayesian` | 贝叶斯网络结构学习、边稳定性与黑白名单约束 | `ready` |
+| 模块 | 当前能力 | 默认图形 | 状态 |
+|---|---|---|---|
+| `descriptive` | 连续变量与分类变量描述性统计 | 不默认生成 | `ready` |
+| `group-comparison` | Welch t/ANOVA、配对 t、Wilcoxon/Kruskal–Wallis、配对 Wilcoxon、χ²/Fisher 与确认后事后比较 | 不默认生成 | `ready` |
+| `correlation` | Pearson、Spearman、Kendall、多重校正和有效样本量矩阵 | 不默认生成 | `ready` |
+| `linear-regression` | 多元线性回归、HC3 稳健标准误、共线性和残差诊断 | 是：01_线性回归诊断图 | `ready` |
+| `logistic-regression` | 二元 Logistic 回归、OR、AUC、Brier、表观校准、ROC 和分离安全处理 | 是：01_ROC曲线 | `ready` |
+| `reliability-validity` | α、ω、条目分析、KMO、Bartlett、效标关联和有序条目多分相关 | 不默认生成 | `ready` |
+| `factor-analysis` | EFA、平行分析、CFA、CR、AVE、区分效度和独立样本划分验证 | 是：01_碎石图与平行分析 | `ready` |
+| `mixed-effects` | 连续结局 LMM 与二分类结局 GLMM | 是：01_混合效应模型诊断图 | `ready` |
+| `missing-data` | 缺失模式审计与 MICE 多重插补对象 | 是：01_变量缺失比例图 | `ready` |
+| `generalized-regression` | 有序 Logistic、多项 Logistic、Poisson 与负二项回归 | 不默认生成 | `ready` |
+| `survival` | Kaplan–Meier、Log-rank、Cox 回归与比例风险诊断 | 是：01_Kaplan-Meier生存曲线 | `ready` |
+| `diagnostic-accuracy` | ROC、AUC、阈值、灵敏度、特异度与似然比 | 是：01_ROC曲线比较 | `ready` |
+| `gee` | Gaussian、Binomial 与 Poisson GEE | 是：01_GEE拟合诊断图 | `ready` |
+| `measurement-invariance` | 配置、度量、标量与严格测量不变性 | 不默认生成 | `ready` |
+| `competing-risks` | 累积发生函数、Gray 检验与 Fine–Gray 回归 | 是：01_累积发生函数图 | `ready` |
+| `propensity-score` | IPTW、Overlap weighting、平衡诊断与加权效应 | 是：01_倾向评分重叠图 | `ready` |
+| `sem` | 结构方程模型、拟合指标、标准化参数与间接效应 | 不默认生成 | `ready` |
+| `network` | EBICglasso 网络、中心性、桥接强度与 Bootstrap | 是：01_网络图 | `ready` |
+| `bayesian` | 贝叶斯网络结构学习、边稳定性与黑白名单约束 | 是：01_贝叶斯网络图 | `ready` |
 
 ## 环境要求
 

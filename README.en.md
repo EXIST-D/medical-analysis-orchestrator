@@ -24,6 +24,12 @@ Release status: Beta / technical preview
 - **Engineered deliverables:** outputs include clearly numbered CSV files, three-line XLSX tables, R figures, Source Data, diagnostics, and Chinese Word reports.
 - **Controlled manuscript support:** manuscript claims must be user-confirmed and linked to a table or figure from the same run.
 
+## Default Academic Figure Template
+
+`medical-academic-v1` is the default for every production figure: R-only rendering, white background, Arial text, no panel grid, and a restrained blue/orange/gray palette. Every exported figure records Source Data, statistical metadata, the template identifier, and an interpretation boundary. Modules without a default figure still emit complete result tables and do not create decorative plots automatically.
+
+![medical-academic-v1 contact sheet](medical-analysis-orchestrator/assets/figure-template/medical-academic-v1-contact-sheet.png)
+
 ## Repository Layout
 
 ```text
@@ -57,27 +63,27 @@ No R packages are installed and no inferential models are run before confirmatio
 
 ## Ready Modules in 0.0.5
 
-| Module | Current capability | Status |
-|---|---|---|
-| `descriptive` | Continuous and categorical descriptive statistics | `ready` |
-| `group-comparison` | Welch t/ANOVA, paired t, Wilcoxon/Kruskal–Wallis, paired Wilcoxon, chi-square/Fisher, and confirmed post-hoc comparisons | `ready` |
-| `correlation` | Pearson, Spearman, Kendall, multiplicity correction, and effective-N matrix | `ready` |
-| `linear-regression` | Multiple linear regression, HC3 robust standard errors, collinearity, and residual diagnostics | `ready` |
-| `logistic-regression` | Binary logistic regression, OR, AUC, Brier score, apparent calibration, ROC, and safe separation handling | `ready` |
-| `reliability-validity` | Alpha, omega, item analysis, KMO, Bartlett, criterion associations, and polychoric support for ordinal items | `ready` |
-| `factor-analysis` | EFA, parallel analysis, CFA, CR, AVE, discriminant validity, and independent-sample split validation | `ready` |
-| `mixed-effects` | Continuous-outcome LMM and binary-outcome GLMM | `ready` |
-| `missing-data` | Missingness audit and MICE multiple-imputation object | `ready` |
-| `generalized-regression` | Ordinal logistic, multinomial logistic, Poisson, and negative-binomial regression | `ready` |
-| `survival` | Kaplan–Meier, log-rank, Cox regression, and proportional-hazards diagnostics | `ready` |
-| `diagnostic-accuracy` | ROC, AUC, thresholds, sensitivity, specificity, and likelihood ratios | `ready` |
-| `gee` | Gaussian, binomial, and Poisson GEE | `ready` |
-| `measurement-invariance` | Configural, metric, scalar, and strict measurement invariance | `ready` |
-| `competing-risks` | Cumulative incidence, Gray test, and Fine–Gray regression | `ready` |
-| `propensity-score` | IPTW, overlap weighting, balance diagnostics, and weighted effects | `ready` |
-| `sem` | Structural equation models, fit indices, standardized parameters, and indirect effects | `ready` |
-| `network` | EBICglasso networks, centrality, bridge strength, and bootstrap assessment | `ready` |
-| `bayesian` | Bayesian-network structure learning, edge stability, and whitelist/blacklist constraints | `ready` |
+| Module | Current capability | Default figure | Status |
+|---|---|---|---|
+| `descriptive` | Continuous and categorical descriptive statistics | None | `ready` |
+| `group-comparison` | Welch t/ANOVA, paired t, Wilcoxon/Kruskal–Wallis, paired Wilcoxon, chi-square/Fisher, and confirmed post-hoc comparisons | None | `ready` |
+| `correlation` | Pearson, Spearman, Kendall, multiplicity correction, and effective-N matrix | None | `ready` |
+| `linear-regression` | Multiple linear regression, HC3 robust standard errors, collinearity, and residual diagnostics | Linear-regression diagnostics | `ready` |
+| `logistic-regression` | Binary logistic regression, OR, AUC, Brier score, apparent calibration, ROC, and safe separation handling | ROC curve | `ready` |
+| `reliability-validity` | Alpha, omega, item analysis, KMO, Bartlett, criterion associations, and polychoric support for ordinal items | None | `ready` |
+| `factor-analysis` | EFA, parallel analysis, CFA, CR, AVE, discriminant validity, and independent-sample split validation | Scree and parallel-analysis plot | `ready` |
+| `mixed-effects` | Continuous-outcome LMM and binary-outcome GLMM | Mixed-model diagnostics | `ready` |
+| `missing-data` | Missingness audit and MICE multiple-imputation object | Missingness proportions | `ready` |
+| `generalized-regression` | Ordinal logistic, multinomial logistic, Poisson, and negative-binomial regression | None | `ready` |
+| `survival` | Kaplan–Meier, log-rank, Cox regression, and proportional-hazards diagnostics | Kaplan–Meier curve | `ready` |
+| `diagnostic-accuracy` | ROC, AUC, thresholds, sensitivity, specificity, and likelihood ratios | ROC comparison | `ready` |
+| `gee` | Gaussian, binomial, and Poisson GEE | GEE diagnostics | `ready` |
+| `measurement-invariance` | Configural, metric, scalar, and strict measurement invariance | None | `ready` |
+| `competing-risks` | Cumulative incidence, Gray test, and Fine–Gray regression | Cumulative-incidence curves | `ready` |
+| `propensity-score` | IPTW, overlap weighting, balance diagnostics, and weighted effects | Propensity-score overlap | `ready` |
+| `sem` | Structural equation models, fit indices, standardized parameters, and indirect effects | None | `ready` |
+| `network` | EBICglasso networks, centrality, bridge strength, and bootstrap assessment | Regularized network | `ready` |
+| `bayesian` | Bayesian-network structure learning, edge stability, and whitelist/blacklist constraints | Averaged Bayesian network | `ready` |
 
 ## Requirements
 

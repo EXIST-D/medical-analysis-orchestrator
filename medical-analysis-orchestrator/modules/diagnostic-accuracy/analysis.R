@@ -57,13 +57,14 @@ run_module <- function(config, context) {
   figure_source <- do.call(rbind,source_rows)
   source_path <- write_figure_source_data(context,"diagnostic_roc",figure_source)
   plot_roc <- function(){
-    colors <- seq_along(markers)
+    palette <- medical_figure_palette()
+    colors <- medical_figure_colors(length(markers))
     first <- TRUE
     for(i in seq_along(markers)){
       roc <- roc_objects[[markers[i]]]
       if(first){graphics::plot(roc,legacy.axes=TRUE,col=colors[i],lwd=2,main="ROC 曲线比较");first<-FALSE}else pROC::plot.roc(roc,add=TRUE,col=colors[i],lwd=2)
     }
-    graphics::abline(0,1,lty=2,col="grey50");graphics::legend("bottomright",legend=paste0(markers," AUC=",sprintf("%.3f",auc_table$auc)),col=colors,lwd=2,bty="n")
+    graphics::abline(0,1,lty=2,col=palette[["neutral"]]);graphics::legend("bottomright",legend=paste0(markers," AUC=",sprintf("%.3f",auc_table$auc)),col=colors,lwd=2,bty="n")
   }
   exports <- export_r_figure(config,context,"01_ROC曲线比较",plot_roc,width_mm=150,height_mm=125)
   model_path <- file.path(context$module_output_dir,"01_ROC分析对象.rds");saveRDS(roc_objects,model_path)
