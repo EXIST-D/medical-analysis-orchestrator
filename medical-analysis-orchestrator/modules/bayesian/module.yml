@@ -1,7 +1,7 @@
 schema_version: "1.1"
 id: "bayesian"
 name_zh: "贝叶斯网络"
-status: "planned"
+status: "ready"
 version: "0.1.0"
 output_order: 31
 output_dir: "31_贝叶斯网络"
@@ -10,15 +10,20 @@ methods:
   - "bootstrap-arc-strength"
 entrypoint: "analysis.R"
 required_packages:
-  - "bnlearn"
-optional_packages:
-  - "igraph"
+  - name: "bnlearn"
+    minimum_version: "5.0.0"
+  - name: "igraph"
+    minimum_version: "2.1.0"
+  - name: "openxlsx2"
+    minimum_version: "1.20.0"
+optional_packages: []
 required_config:
   - "analysis.parameters.bayesian.nodes"
 outputs:
   tables:
-    - "贝叶斯网络边"
+    - "01_贝叶斯网络边"
+    - "02_Bootstrap边强度"
   figures:
-    - "贝叶斯网络图"
+    - "01_贝叶斯网络图"
   model_objects:
-    - "贝叶斯网络模型.rds"
+    - "01_贝叶斯网络模型.rds"

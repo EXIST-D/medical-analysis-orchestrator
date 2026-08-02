@@ -19,6 +19,7 @@ required_config:
 outputs:
   tables:
     - "01_相关系数矩阵"
-    - "02_相关性检验明细"
+    - "02_相关有效样本量矩阵"
+    - "03_相关性检验明细"
   figures: []
   model_objects: []

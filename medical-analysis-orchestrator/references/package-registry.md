@@ -9,8 +9,9 @@
 | 配置与结果序列化 | `yaml`, `jsonlite` |
 | 文件指纹 | `digest` |
 | 三线表 XLSX | `openxlsx2` |
+| 默认学术绘图模板 | `ggplot2`, `patchwork`, `ragg`, `svglite`, `png` |
 
-基础五个统计模块的计算主要使用 base R；`pROC` 是 Logistic 模块的可选扩展，不是当前 ROC 计算的硬依赖。
+基础统计模块的计算尽量使用 base R；独立的诊断准确性模块把 `pROC` 作为必需依赖，Logistic 回归自身仍不依赖它。
 
 ## 当前扩展模块
 
@@ -19,18 +20,18 @@
 | 信度与效度 | `psych`, `openxlsx2` | α、ω、条目分析、KMO、Bartlett、效标关联 |
 | EFA/CFA | `psych`, `lavaan`, `openxlsx2` | EFA、平行分析、CFA、拟合与效度指标 |
 | 混合效应模型 | `lme4`, `lmerTest`, `openxlsx2` | LMM 使用 Satterthwaite 检验；GLMM 使用 `lme4` |
+| 缺失数据与多重插补 | `mice`, `openxlsx2` | 缺失审计和 MICE 插补对象 |
+| 有序/多项/计数回归 | `MASS`, `nnet`, `openxlsx2` | `polr`、`multinom`、Poisson、负二项 |
+| 基础生存分析 | `survival`, `openxlsx2` | Kaplan–Meier、log-rank、Cox、Schoenfeld 诊断 |
+| 诊断准确性 | `pROC`, `openxlsx2` | ROC、AUC、阈值指标和 DeLong 比较 |
+| GEE | `geepack`, `openxlsx2` | 群体平均效应和稳健方差 |
+| 测量不变性/SEM | `lavaan`, `openxlsx2` | 多组 CFA 不变性与结构方程模型 |
+| 竞争风险 | `cmprsk`, `openxlsx2` | 累积发生函数、Gray、Fine–Gray |
+| 倾向评分 | `survey`, `openxlsx2` | IPTW/重叠权重和稳健加权推断 |
+| 网络分析 | `qgraph`, `openxlsx2` | EBICglasso 与非参数 Bootstrap |
+| 贝叶斯网络 | `bnlearn`, `igraph`, `openxlsx2` | 结构学习、边强度和平均网络 |
 
-## 后续模块候选
-
-| 模块 | 候选包 |
-|---|---|
-| 生存分析 | `survival`, `survminer`, `cmprsk` |
-| GEE/复杂广义混合模型 | `geepack`, `glmmTMB` |
-| 测量不变性/高级 SEM | `semTools` |
-| 网络分析 | `qgraph`, `bootnet`, `networktools`, `NetworkComparisonTest` |
-| 贝叶斯网络 | `bnlearn`, `igraph` |
-
-候选包只在对应模块确认并升级为 `ready` 后按需解析。
+`networktools` 是网络桥接指标的可选依赖；只有配置确实需要扩展实现时才安装。未实现的零膨胀、网络组间比较和自动因果方向识别不得通过安装额外包偷偷启用。
 
 ## 安装规则
 

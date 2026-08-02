@@ -10,7 +10,7 @@ inspect → recommend → confirm → execute → report
 
 Skill 先以只读方式识别文件、数据集、变量类型、缺失、重复和潜在研究角色；再根据研究问题、研究设计与数据条件提出统计方案；只有用户明确确认结局、变量、清洗规则和方法后，才调用 R 执行分析并生成表格、图形、运行记录和 Word 报告。
 
-当前版本：`0.0.4`
+当前版本：`0.0.5`
 
 发布状态：Beta / 技术预览版
 
@@ -23,6 +23,14 @@ Skill 先以只读方式识别文件、数据集、变量类型、缺失、重�
 - **结果来源可追溯**：统一记录输入哈希、方案指纹、R 与包版本、随机种子、模型对象、输出文件和 manifest。
 - **交付物工程化**：生成清晰编号的 CSV、三线表 XLSX、R 图形、Source Data、诊断信息和中文 Word 报告。
 - **论文支持受控**：论文主张必须由用户确认并解析到同一次运行的表或图，不能根据显著性自动生成论文结论。
+
+## 默认学术绘图模板
+
+当前默认图形模板为 `medical-academic-v1`：由 R 完成绘图、预览和导出，采用白底、Arial、无面板网格线和克制的蓝/橙/灰配色；每张图同时登记 Source Data、统计元数据和解释边界。它覆盖描述性统计、组间比较、相关分析、回归、信效度、因子分析、纵向模型、生存、诊断准确性、倾向评分、SEM、网络和贝叶斯网络等当前模块。
+
+![medical-academic-v1 默认模板总览](medical-analysis-orchestrator/assets/figure-template/medical-academic-v1-contact-sheet.png)
+
+也可以直接查看本机测试版本的[总览联系表](D:/User/Desktop/开发/SKILLS/01medical-analysis-orchestrator测试/06_可视化绘图测试_v0.0.5/03_图形输出/00_审核联系表.png)。后续如发现更合适的论文图形，可在保持 R 图形证据契约和视觉 QA 的前提下逐图替换或补充。
 
 ## 仓库结构
 
@@ -74,7 +82,7 @@ medical-analysis-orchestrator/
 
 验证统一结果对象、文件哈希和模块顺序，只使用同一个 `run_id` 的结果生成 CSV、XLSX、图形、Source Data、模型对象、运行记录和 Word 报告。
 
-## 0.0.4 可执行模块
+## 0.0.5 可执行模块
 
 | 模块 | 当前能力 | 状态 |
 |---|---|---|
@@ -86,15 +94,17 @@ medical-analysis-orchestrator/
 | `reliability-validity` | α、ω、条目分析、KMO、Bartlett、效标关联和有序条目多分相关 | `ready` |
 | `factor-analysis` | EFA、平行分析、CFA、CR、AVE、区分效度和独立样本划分验证 | `ready` |
 | `mixed-effects` | 连续结局 LMM 与二分类结局 GLMM | `ready` |
-
-以下接口已经登记，但仍处于 `planned` 状态，不能生成正式结果：
-
-- `generalized-regression`：有序、多分类、Poisson 和负二项回归；
-- `gee`：广义估计方程；
-- `measurement-invariance`：测量不变性；
-- `survival`：生存分析；
-- `network`：网络估计、稳定性、桥接指标和网络比较；
-- `bayesian`：贝叶斯网络。
+| `missing-data` | 缺失模式审计与 MICE 多重插补对象 | `ready` |
+| `generalized-regression` | 有序 Logistic、多项 Logistic、Poisson 与负二项回归 | `ready` |
+| `survival` | Kaplan–Meier、Log-rank、Cox 回归与比例风险诊断 | `ready` |
+| `diagnostic-accuracy` | ROC、AUC、阈值、灵敏度、特异度与似然比 | `ready` |
+| `gee` | Gaussian、Binomial 与 Poisson GEE | `ready` |
+| `measurement-invariance` | 配置、度量、标量与严格测量不变性 | `ready` |
+| `competing-risks` | 累积发生函数、Gray 检验与 Fine–Gray 回归 | `ready` |
+| `propensity-score` | IPTW、Overlap weighting、平衡诊断与加权效应 | `ready` |
+| `sem` | 结构方程模型、拟合指标、标准化参数与间接效应 | `ready` |
+| `network` | EBICglasso 网络、中心性、桥接强度与 Bootstrap | `ready` |
+| `bayesian` | 贝叶斯网络结构学习、边稳定性与黑白名单约束 | `ready` |
 
 ## 环境要求
 
@@ -180,6 +190,17 @@ data_profile.csv
 07_信度与效度分析/
 08_探索性与验证性因子分析/
 09_混合效应模型/
+10_缺失数据与多重插补/
+20_广义回归/
+21_基础生存分析/
+22_诊断试验准确性/
+23_广义估计方程/
+24_测量不变性/
+25_竞争风险/
+26_倾向评分/
+27_结构方程模型/
+30_网络分析/
+31_贝叶斯网络/
 90_最终报告/
 99_运行记录/
 sessionInfo.txt
@@ -208,9 +229,9 @@ manifest.json
 
 ## 验证状态
 
-`0.0.1` 发布前已完成：
+`0.0.5` 发布前已完成：
 
-- 16 项自动化测试；
+- 32 项本地端到端资格测试，以及仓库内 3 项发布 smoke test；
 - Skill 结构校验；
 - Python、R 和 YAML 语法检查；
 - 本地文档链接检查；
@@ -235,7 +256,7 @@ manifest.json
 如果本项目在研究、教学、方法演示或软件工作流中对你有帮助，建议引用具体版本，以便结果复现：
 
 ```text
-EXIST-D. medical-analysis-orchestrator (Version 0.0.4) [Computer software].
+EXIST-D. medical-analysis-orchestrator (Version 0.0.5) [Computer software].
 GitHub. https://github.com/EXIST-D/medical-analysis-orchestrator
 ```
 

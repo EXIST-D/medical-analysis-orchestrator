@@ -64,6 +64,46 @@ MODULE_PARAMETER_FIELDS = {
         "categorical", "reference_levels", "group", "random_intercept",
         "random_slopes", "correlated_random_effects", "time_variable", "reml", "optimizer",
     },
+    "missing-data": {
+        "variables", "method", "imputations", "iterations", "minimum_complete_n",
+    },
+    "generalized-regression": {
+        "family", "outcome", "predictors", "categorical", "reference_levels",
+        "outcome_reference", "offset", "confidence_level",
+    },
+    "survival": {
+        "time", "event", "event_level", "group", "predictors", "categorical",
+        "reference_levels", "confidence_level",
+    },
+    "diagnostic-accuracy": {
+        "outcome", "event_level", "markers", "thresholds", "direction",
+        "confidence_level",
+    },
+    "gee": {
+        "family", "outcome", "event_level", "id", "time", "predictors",
+        "categorical", "reference_levels", "correlation_structure", "confidence_level",
+    },
+    "measurement-invariance": {
+        "items", "group", "model", "ordered", "estimator", "missing", "levels",
+    },
+    "competing-risks": {
+        "time", "status", "event_code", "censor_code", "group", "covariates",
+        "categorical", "confidence_level",
+    },
+    "propensity-score": {
+        "treatment", "treated_level", "covariates", "categorical", "weight_type",
+        "estimand", "outcome", "outcome_type", "event_level", "confidence_level",
+    },
+    "sem": {
+        "model", "estimator", "ordered", "missing", "std_lv", "bootstrap_iterations",
+    },
+    "network": {
+        "nodes", "correlation", "tuning", "bootstrap_iterations", "communities",
+    },
+    "bayesian": {
+        "nodes", "algorithm", "bootstrap_iterations", "strength_threshold",
+        "whitelist", "blacklist",
+    },
 }
 
 
@@ -118,7 +158,7 @@ def validate_config_shape(config: dict[str, Any], errors: list[str]) -> None:
     reporting = config.get("reporting") or {}
     reject_unknown_keys(
         reporting.get("figure_contract"),
-        {"profile", "backend", "formats", "width_mm", "height_mm", "dpi", "require_source_data", "require_statistics_metadata", "require_editable_text"},
+        {"template", "profile", "backend", "formats", "width_mm", "height_mm", "dpi", "require_source_data", "require_statistics_metadata", "require_editable_text"},
         "reporting.figure_contract", errors,
     )
     reject_unknown_keys(
@@ -197,6 +237,108 @@ def validate_module_parameter_types(
                 fraction = validation.get("train_fraction")
                 if not isinstance(fraction, (int, float)) or not .5 < float(fraction) < .9:
                     errors.append("analysis.parameters.factor-analysis.validation.train_fraction must be between 0.5 and 0.9")
+        elif module_id == "missing-data":
+            if not is_string_list(values.get("variables")):
+                errors.append("analysis.parameters.missing-data.variables must be a non-empty string list")
+            if str(values.get("method") or "audit").lower() not in {"audit", "mice"}:
+                errors.append("analysis.parameters.missing-data.method is unsupported")
+            for field, lower, upper in (("imputations", 2, 100), ("iterations", 1, 100)):
+                value = values.get(field, lower)
+                if not isinstance(value, int) or not lower <= value <= upper:
+                    errors.append(f"analysis.parameters.missing-data.{field} must be an integer from {lower} to {upper}")
+        elif module_id == "generalized-regression":
+            if str(values.get("family") or "").lower() not in {"ordinal", "multinomial", "poisson", "negative-binomial"}:
+                errors.append("analysis.parameters.generalized-regression.family is unsupported")
+            if not str(values.get("outcome") or "").strip() or not is_string_list(values.get("predictors")):
+                errors.append("generalized-regression requires outcome and non-empty predictors")
+            validate_confidence_level(values.get("confidence_level", .95), "analysis.parameters.generalized-regression.confidence_level", errors)
+        elif module_id == "survival":
+            for field in ("time", "event", "event_level"):
+                if not str(values.get(field) or "").strip():
+                    errors.append(f"analysis.parameters.survival.{field} is required")
+            if not isinstance(values.get("predictors", []), list):
+                errors.append("analysis.parameters.survival.predictors must be a list")
+            validate_confidence_level(values.get("confidence_level", .95), "analysis.parameters.survival.confidence_level", errors)
+        elif module_id == "diagnostic-accuracy":
+            if not str(values.get("outcome") or "").strip() or not str(values.get("event_level") or "").strip():
+                errors.append("diagnostic-accuracy requires outcome and event_level")
+            if not is_string_list(values.get("markers")):
+                errors.append("analysis.parameters.diagnostic-accuracy.markers must be a non-empty string list")
+            if str(values.get("direction") or "auto") not in {"auto", "<", ">"}:
+                errors.append("analysis.parameters.diagnostic-accuracy.direction is unsupported")
+            validate_confidence_level(values.get("confidence_level", .95), "analysis.parameters.diagnostic-accuracy.confidence_level", errors)
+        elif module_id == "gee":
+            if str(values.get("family") or "gaussian").lower() not in {"gaussian", "binomial", "poisson"}:
+                errors.append("analysis.parameters.gee.family is unsupported")
+            if not str(values.get("outcome") or "").strip() or not str(values.get("id") or "").strip() or not is_string_list(values.get("predictors")):
+                errors.append("GEE requires outcome, id and non-empty predictors")
+            if str(values.get("correlation_structure") or "exchangeable").lower() not in {"independence", "exchangeable", "ar1", "unstructured"}:
+                errors.append("analysis.parameters.gee.correlation_structure is unsupported")
+            if str(values.get("family") or "gaussian").lower() == "binomial" and not str(values.get("event_level") or "").strip():
+                errors.append("binomial GEE requires event_level")
+            validate_confidence_level(values.get("confidence_level", .95), "analysis.parameters.gee.confidence_level", errors)
+        elif module_id == "measurement-invariance":
+            if not is_string_list(values.get("items")) or len(values.get("items") or []) < 3:
+                errors.append("measurement-invariance requires at least three items")
+            if not str(values.get("group") or "").strip() or not str(values.get("model") or "").strip():
+                errors.append("measurement-invariance requires group and model")
+            levels = values.get("levels") or []
+            if not is_string_list(levels) or any(str(item).lower() not in {"configural", "metric", "scalar", "strict"} for item in levels):
+                errors.append("analysis.parameters.measurement-invariance.levels is unsupported")
+        elif module_id == "competing-risks":
+            for field in ("time", "status", "event_code"):
+                if not str(values.get(field) or "").strip():
+                    errors.append(f"analysis.parameters.competing-risks.{field} is required")
+            if not isinstance(values.get("covariates", []), list):
+                errors.append("analysis.parameters.competing-risks.covariates must be a list")
+            validate_confidence_level(values.get("confidence_level", .95), "analysis.parameters.competing-risks.confidence_level", errors)
+        elif module_id == "propensity-score":
+            for field in ("treatment", "treated_level"):
+                if not str(values.get(field) or "").strip():
+                    errors.append(f"analysis.parameters.propensity-score.{field} is required")
+            if not is_string_list(values.get("covariates")):
+                errors.append("analysis.parameters.propensity-score.covariates must be a non-empty string list")
+            if str(values.get("weight_type") or "overlap").lower() not in {"iptw", "overlap"}:
+                errors.append("analysis.parameters.propensity-score.weight_type is unsupported")
+            if str(values.get("outcome_type") or "continuous").lower() not in {"continuous", "binary"}:
+                errors.append("analysis.parameters.propensity-score.outcome_type is unsupported")
+            validate_confidence_level(values.get("confidence_level", .95), "analysis.parameters.propensity-score.confidence_level", errors)
+        elif module_id == "sem":
+            if not str(values.get("model") or "").strip():
+                errors.append("analysis.parameters.sem.model is required")
+            bootstrap = values.get("bootstrap_iterations", 0)
+            if not isinstance(bootstrap, int) or not 0 <= bootstrap <= 5000:
+                errors.append("analysis.parameters.sem.bootstrap_iterations must be an integer from 0 to 5000")
+        elif module_id == "network":
+            if not is_string_list(values.get("nodes")) or len(values.get("nodes") or []) < 3:
+                errors.append("analysis.parameters.network.nodes must contain at least three names")
+            if str(values.get("correlation") or "spearman").lower() not in {"pearson", "spearman"}:
+                errors.append("analysis.parameters.network.correlation is unsupported")
+            bootstrap = values.get("bootstrap_iterations", 100)
+            if not isinstance(bootstrap, int) or not 20 <= bootstrap <= 2000:
+                errors.append("analysis.parameters.network.bootstrap_iterations must be an integer from 20 to 2000")
+        elif module_id == "bayesian":
+            if not is_string_list(values.get("nodes")) or len(values.get("nodes") or []) < 3:
+                errors.append("analysis.parameters.bayesian.nodes must contain at least three names")
+            if str(values.get("algorithm") or "hc").lower() not in {"hc", "tabu"}:
+                errors.append("analysis.parameters.bayesian.algorithm is unsupported")
+            bootstrap = values.get("bootstrap_iterations", 100)
+            if not isinstance(bootstrap, int) or not 20 <= bootstrap <= 2000:
+                errors.append("analysis.parameters.bayesian.bootstrap_iterations must be an integer from 20 to 2000")
+            nodes = set(values.get("nodes") or [])
+            for field in ("whitelist", "blacklist"):
+                arcs = values.get(field, [])
+                if not isinstance(arcs, list):
+                    errors.append(f"analysis.parameters.bayesian.{field} must be a list of from/to mappings")
+                    continue
+                for index, arc in enumerate(arcs):
+                    if not isinstance(arc, dict) or set(arc) != {"from", "to"}:
+                        errors.append(f"analysis.parameters.bayesian.{field}[{index}] must contain only from and to")
+                        continue
+                    if not all(isinstance(arc[key], str) and arc[key].strip() for key in ("from", "to")):
+                        errors.append(f"analysis.parameters.bayesian.{field}[{index}] endpoints must be non-empty strings")
+                    elif arc["from"] == arc["to"] or arc["from"] not in nodes or arc["to"] not in nodes:
+                        errors.append(f"analysis.parameters.bayesian.{field}[{index}] endpoints must be distinct selected nodes")
 
 
 def load_structured(path: Path) -> dict[str, Any]:
@@ -247,6 +389,11 @@ def validate_reporting_contract(
 ) -> None:
     reporting = config.get("reporting") or {}
     figure_contract = reporting.get("figure_contract") or {}
+    template = str(figure_contract.get("template") or "medical-academic-v1").lower()
+    if template not in {"medical-academic-v1", "custom"}:
+        errors.append(
+            "reporting.figure_contract.template must be medical-academic-v1 or custom"
+        )
     profile = str(figure_contract.get("profile") or "analysis").lower()
     backend = str(figure_contract.get("backend") or "R")
     formats_value = figure_contract.get("formats")
@@ -474,10 +621,9 @@ def validate(
     validate_module_parameter_types(config, selected_modules, errors)
 
     if "survival" in selected_modules:
-        if not nested_get(config, "variables.time"):
-            errors.append("Survival analysis requires variables.time")
-        if not nested_get(config, "variables.event"):
-            errors.append("Survival analysis requires variables.event")
+        survival_params = nested_get(config, "analysis.parameters.survival") or {}
+        if not survival_params.get("time") or not survival_params.get("event"):
+            errors.append("Survival analysis requires confirmed time and event parameters")
     if "reliability-validity" in selected_modules:
         scales = nested_get(
             config, "analysis.parameters.reliability-validity.scales"

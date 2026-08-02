@@ -1,29 +1,32 @@
 schema_version: "1.1"
 id: "survival"
 name_zh: "生存分析"
-status: "planned"
+status: "ready"
 version: "0.1.0"
-output_order: 23
-output_dir: "23_生存分析"
+output_order: 21
+output_dir: "21_基础生存分析"
 methods:
   - "kaplan-meier"
   - "log-rank"
   - "cox-proportional-hazards"
-  - "competing-risks"
 entrypoint: "analysis.R"
 required_packages:
-  - "survival"
-optional_packages:
-  - "survminer"
-  - "cmprsk"
+  - name: "survival"
+    minimum_version: "3.8.0"
+  - name: "openxlsx2"
+    minimum_version: "1.20.0"
+optional_packages: []
 required_config:
-  - "variables.time"
-  - "variables.event"
+  - "analysis.parameters.survival.time"
+  - "analysis.parameters.survival.event"
+  - "analysis.parameters.survival.event_level"
 outputs:
   tables:
-    - "生存分析估计"
-    - "比例风险诊断"
+    - "01_Kaplan-Meier估计"
+    - "02_Cox回归"
+    - "03_比例风险诊断"
+    - "04_生存分析摘要"
   figures:
-    - "生存曲线"
+    - "01_Kaplan-Meier生存曲线"
   model_objects:
-    - "生存分析模型.rds"
+    - "01_生存分析模型.rds"

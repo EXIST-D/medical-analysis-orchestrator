@@ -19,9 +19,15 @@ SCRIPTS = SKILL_ROOT / "scripts"
 class ReleaseSmokeTests(unittest.TestCase):
     def test_registry_descriptors_and_runtime_scripts_are_present(self) -> None:
         registry = yaml.safe_load((SKILL_ROOT / "modules" / "registry.yml").read_text(encoding="utf-8"))
-        self.assertTrue(registry["modules"])
+        self.assertEqual(len(registry["modules"]), 19)
         for module in registry["modules"]:
-            self.assertTrue((SKILL_ROOT / "modules" / module["id"] / "module.yml").is_file())
+            module_root = SKILL_ROOT / "modules" / module["id"]
+            descriptor_path = module_root / "module.yml"
+            self.assertTrue(descriptor_path.is_file(), module["id"])
+            descriptor = yaml.safe_load(descriptor_path.read_text(encoding="utf-8"))
+            self.assertEqual(module["status"], "ready", module["id"])
+            self.assertEqual(descriptor["status"], "ready", module["id"])
+            self.assertTrue((module_root / descriptor["entrypoint"]).is_file(), module["id"])
         for name in (
             "detect_python_environment.py", "install_python_packages.py", "manage_renv.R",
             "write_environment_manifest.py", "verify_visual_regression.py", "generate_audit_report.py",

@@ -14,6 +14,10 @@ methods:
   - "kruskal-wallis"
   - "chi-square"
   - "fisher-exact"
+  - "paired-t-test"
+  - "paired-wilcoxon"
+  - "tukey-hsd"
+  - "pairwise-wilcoxon"
 entrypoint: "analysis.R"
 required_packages:
   - name: "openxlsx2"
@@ -25,5 +29,6 @@ outputs:
   tables:
     - "01_连续变量组间比较"
     - "02_分类变量组间比较"
+    - "03_事后比较"
   figures: []
   model_objects: []

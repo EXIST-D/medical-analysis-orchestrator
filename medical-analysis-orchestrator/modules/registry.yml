@@ -32,27 +32,47 @@ modules:
     order: 9
     output_dir: "09_混合效应模型"
     status: "ready"
+  - id: "missing-data"
+    order: 10
+    output_dir: "10_缺失数据与多重插补"
+    status: "ready"
   - id: "generalized-regression"
     order: 20
     output_dir: "20_扩展广义回归"
-    status: "planned"
-  - id: "gee"
-    order: 21
-    output_dir: "21_广义估计方程"
-    status: "planned"
-  - id: "measurement-invariance"
-    order: 22
-    output_dir: "22_测量不变性"
-    status: "planned"
+    status: "ready"
   - id: "survival"
+    order: 21
+    output_dir: "21_基础生存分析"
+    status: "ready"
+  - id: "diagnostic-accuracy"
+    order: 22
+    output_dir: "22_诊断试验准确性"
+    status: "ready"
+  - id: "gee"
     order: 23
-    output_dir: "23_生存分析"
-    status: "planned"
+    output_dir: "23_广义估计方程"
+    status: "ready"
+  - id: "measurement-invariance"
+    order: 24
+    output_dir: "24_测量不变性"
+    status: "ready"
+  - id: "competing-risks"
+    order: 25
+    output_dir: "25_竞争风险分析"
+    status: "ready"
+  - id: "propensity-score"
+    order: 26
+    output_dir: "26_倾向评分分析"
+    status: "ready"
+  - id: "sem"
+    order: 27
+    output_dir: "27_结构方程模型"
+    status: "ready"
   - id: "network"
     order: 30
     output_dir: "30_网络分析"
-    status: "planned"
+    status: "ready"
   - id: "bayesian"
     order: 31
     output_dir: "31_贝叶斯网络"
-    status: "planned"
+    status: "ready"
