@@ -69,6 +69,8 @@ class ReleaseV005CompletionTests(unittest.TestCase):
         )
         self.assertIn('type = "binary"', workflow)
         self.assertIn('Sys.getenv("RSPM")', workflow)
+        self.assertIn('install.packages("bnlearn"', workflow)
+        self.assertIn('type = "source"', workflow)
 
     def test_release_tree_contains_no_runtime_artifacts(self) -> None:
         forbidden_names = {"Rplots.pdf", ".coverage"}
