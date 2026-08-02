@@ -72,7 +72,7 @@ jobs:
       - name: Install matrix dependencies
         run: |
           python -m pip install --disable-pip-version-check PyYAML
-          Rscript -e 'packages <- strsplit(commandArgs(trailingOnly = TRUE)[1], ",")[[1]]; repos <- Sys.getenv("RSPM"); if (!nzchar(repos)) repos <- "https://cloud.r-project.org"; missing <- packages[!vapply(packages, requireNamespace, quietly = TRUE, FUN.VALUE = logical(1))]; if (length(missing)) install.packages(missing, repos = repos, type = "binary"); unresolved <- packages[!vapply(packages, requireNamespace, quietly = TRUE, FUN.VALUE = logical(1))]; if (length(unresolved)) stop("Unresolved R packages: ", paste(unresolved, collapse = ", "))' "${{ matrix.r_packages }}"
+          Rscript -e 'packages <- strsplit(commandArgs(trailingOnly = TRUE)[1], ",")[[1]]; repos <- Sys.getenv("RSPM"); if (!nzchar(repos)) repos <- "https://cloud.r-project.org"; missing <- packages[!vapply(packages, requireNamespace, quietly = TRUE, FUN.VALUE = logical(1))]; binary_packages <- setdiff(missing, "bnlearn"); if (length(binary_packages)) install.packages(binary_packages, repos = repos, type = "binary"); if ("bnlearn" %in% missing && !requireNamespace("bnlearn", quietly = TRUE)) install.packages("bnlearn", repos = repos, type = "source"); unresolved <- packages[!vapply(packages, requireNamespace, quietly = TRUE, FUN.VALUE = logical(1))]; if (length(unresolved)) stop("Unresolved R packages: ", paste(unresolved, collapse = ", "))' "${{ matrix.r_packages }}"
       - name: Execute real R module shard
         run: python tests/run_module_execution_matrix.py --shard ${{ matrix.shard }} --work-dir matrix-output/${{ matrix.shard }}
       - uses: actions/upload-artifact@v4
