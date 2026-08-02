@@ -5,8 +5,8 @@
   "source_root": "medical-analysis-orchestrator",
   "files": {
     "agents/openai.yaml": {
-      "sha256": "9b79369c379e13f2c96f47cd972d14a780b6fe4e6afa791860232dd8d7ee47df",
-      "size": 314
+      "sha256": "083a5a66bb07e57fd31798a99154a8d9deecaf569b23bc4d601a63950ad9d0aa",
+      "size": 311
     },
     "assets/figure-template/medical-academic-v1-contact-sheet.png": {
       "sha256": "9547fe99380837df3f9c8a3593c0d43c2b56dea4b562802888b4392d2415a8bc",

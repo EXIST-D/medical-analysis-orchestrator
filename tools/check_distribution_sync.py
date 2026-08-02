@@ -28,11 +28,20 @@ IGNORED_NAMES = {".coverage", "Rplots.pdf", "Thumbs.db", ".DS_Store"}
 IGNORED_SUFFIXES = {".pyc", ".pyo", ".log", ".tmp", ".bak"}
 
 
+def normalized_file_bytes(path: Path) -> bytes:
+    raw = path.read_bytes()
+    if b"\x00" in raw:
+        return raw
+    try:
+        text = raw.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        return raw
+    return text.replace("\r\n", "\n").replace("\r", "\n").encode("utf-8")
+
+
 def sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        while chunk := handle.read(1024 * 1024):
-            digest.update(chunk)
+    digest.update(normalized_file_bytes(path))
     return digest.hexdigest()
 
 
@@ -53,7 +62,8 @@ def inventory(root: Path) -> dict[str, dict[str, int | str]]:
         if is_ignored(relative):
             continue
         key = relative.as_posix()
-        result[key] = {"sha256": sha256_file(path), "size": path.stat().st_size}
+        normalized = normalized_file_bytes(path)
+        result[key] = {"sha256": sha256_file(path), "size": len(normalized)}
     return result
 
 
