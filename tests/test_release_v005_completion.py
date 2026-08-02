@@ -63,6 +63,13 @@ class ReleaseV005CompletionTests(unittest.TestCase):
         self.assertTrue((REPO_ROOT / "tools" / "package_release.py").is_file())
         self.assertTrue((REPO_ROOT / "release-manifest.json").is_file())
 
+    def test_windows_module_matrix_forces_binary_r_packages(self) -> None:
+        workflow = (REPO_ROOT / ".github" / "workflows" / "ci.yml").read_text(
+            encoding="utf-8-sig"
+        )
+        self.assertIn('type = "binary"', workflow)
+        self.assertIn('Sys.getenv("RSPM")', workflow)
+
     def test_release_tree_contains_no_runtime_artifacts(self) -> None:
         forbidden_names = {"Rplots.pdf", ".coverage"}
         forbidden_directories = {".r-library"}
