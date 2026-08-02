@@ -173,21 +173,23 @@ run_module <- function(config, context) {
       context, "efa_scree_parallel", figure_source
     )
     plot_efa_scree <- function() {
+      palette <- medical_figure_palette()
       graphics::plot(
         figure_source$factor_index, figure_source$observed_eigenvalue,
         type = "b", pch = 19, xlab = "因子序号", ylab = "特征值",
-        main = "碎石图与平行分析"
+        main = "碎石图与平行分析", col = palette[["accent"]]
       )
-      graphics::abline(h = 1, lty = 3, col = "grey50")
+      graphics::abline(h = 1, lty = 3, col = palette[["neutral"]])
       if (any(is.finite(figure_source$random_data_95th_percentile))) {
         graphics::lines(
           figure_source$factor_index,
           figure_source$random_data_95th_percentile,
-          type = "b", pch = 1, lty = 2
+          type = "b", pch = 1, lty = 2, col = palette[["warning"]]
         )
         graphics::legend(
           "topright", legend = c("观察特征值", "随机数据95%分位"),
-          lty = c(1, 2), pch = c(19, 1), bty = "n"
+          lty = c(1, 2), pch = c(19, 1),
+          col = c(palette[["accent"]], palette[["warning"]]), bty = "n"
         )
       }
     }

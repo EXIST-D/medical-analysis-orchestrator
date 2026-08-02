@@ -29,7 +29,7 @@ run_module <- function(config, context) {
   }
   if(subset$n_excluded_missing>0L)warnings<-c(warnings,paste0("因模型变量缺失排除 ",subset$n_excluded_missing," 行。"))
   source_path<-write_figure_source_data(context,"cumulative_incidence",cif_table)
-  plot_cif<-function(){plot(cif,lty=seq_along(curve_names),col=seq_along(curve_names),xlab="随访时间",ylab="累积发生率",main="竞争风险累积发生函数")}
+  plot_cif<-function(){colors<-medical_figure_colors(length(curve_names));plot(cif,lty=seq_along(curve_names),col=colors,xlab="随访时间",ylab="累积发生率",main="竞争风险累积发生函数")}
   exports<-export_r_figure(config,context,"01_累积发生函数图",plot_cif,width_mm=160,height_mm=120)
   model_path<-file.path(context$module_output_dir,"01_竞争风险模型.rds");saveRDS(list(cuminc=cif,fine_gray=fg_model,status_mapping=data.frame(original=levels(status_factor),numeric=seq_along(levels(status_factor))-1L)),model_path)
   tables<-list(write_result_table(context,"competing-risks","01_累积发生函数","累积发生函数",cif_table),write_result_table(context,"competing-risks","02_Gray检验","Gray 检验",gray_table),write_result_table(context,"competing-risks","03_Fine-Gray回归","Fine-Gray 回归",fg_table))

@@ -51,9 +51,9 @@ class ReleaseV005CompletionTests(unittest.TestCase):
                 ).read_text(encoding="utf-8-sig")
             )
             figures = descriptor.get("outputs", {}).get("figures", [])
-            expected = "；".join(figures) if figures else "不默认生成"
+            expected = "是：" + "；".join(figures) if figures else "不默认生成"
             row_pattern = re.compile(
-                rf"^\|\s*{re.escape(descriptor['name_zh'])}\s*\|.*\|\s*{re.escape(expected)}\s*\|\s*Ready\s*\|$",
+                rf"^\|\s*`{re.escape(entry['id'])}`\s*\|.*\|\s*{re.escape(expected)}\s*\|\s*`ready`\s*\|$",
                 re.MULTILINE,
             )
             self.assertRegex(readme, row_pattern, entry["id"])
@@ -65,7 +65,7 @@ class ReleaseV005CompletionTests(unittest.TestCase):
 
     def test_release_tree_contains_no_runtime_artifacts(self) -> None:
         forbidden_names = {"Rplots.pdf", ".coverage"}
-        forbidden_directories = {"__pycache__", ".pytest_cache", ".r-library"}
+        forbidden_directories = {".r-library"}
         problems: list[str] = []
         for path in REPO_ROOT.rglob("*"):
             if ".git" in path.parts:

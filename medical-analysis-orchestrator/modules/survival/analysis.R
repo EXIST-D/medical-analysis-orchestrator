@@ -72,8 +72,9 @@ run_module <- function(config, context) {
   if (subset$n_excluded_missing > 0L) warnings <- c(warnings,paste0("因生存分析变量缺失排除 ",subset$n_excluded_missing," 行。"))
   source_data_path <- write_figure_source_data(context,"kaplan_meier",km_table)
   plot_km <- function() {
-    graphics::plot(km_model,xlab="随访时间",ylab="生存概率",main="Kaplan-Meier 生存曲线",lwd=2,col=seq_len(max(1,length(km_model$strata))),mark.time=TRUE)
-    if (!is.null(km_model$strata)) graphics::legend("bottomleft",legend=names(km_model$strata),col=seq_along(km_model$strata),lwd=2,bty="n")
+    colors <- medical_figure_colors(max(1L, length(km_model$strata)))
+    graphics::plot(km_model,xlab="随访时间",ylab="生存概率",main="Kaplan-Meier 生存曲线",lwd=2,col=colors,mark.time=TRUE)
+    if (!is.null(km_model$strata)) graphics::legend("bottomleft",legend=names(km_model$strata),col=colors,lwd=2,bty="n")
   }
   exports <- export_r_figure(config,context,"01_Kaplan-Meier生存曲线",plot_km,width_mm=160,height_mm=120)
   model_summary <- data.frame(

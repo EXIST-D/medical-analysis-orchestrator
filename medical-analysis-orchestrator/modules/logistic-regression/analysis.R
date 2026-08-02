@@ -152,15 +152,16 @@ run_module <- function(config, context) {
     context, "roc_curve", roc_source
   )
   plot_roc <- function() {
+    palette <- medical_figure_palette()
     graphics::plot(
       roc_source$false_positive_rate,
       roc_source$true_positive_rate,
-      type = "l", lwd = 2, col = "black",
+      type = "l", lwd = 2, col = palette[["accent"]],
       xlab = "1 - 特异度", ylab = "敏感度",
       main = paste0("ROC 曲线（AUC = ", sprintf("%.3f", auc), "）"),
       xlim = c(0, 1), ylim = c(0, 1), asp = 1
     )
-    graphics::abline(0, 1, lty = 2, col = "grey50")
+    graphics::abline(0, 1, lty = 2, col = palette[["neutral"]])
   }
   figure_exports <- export_r_figure(
     config,

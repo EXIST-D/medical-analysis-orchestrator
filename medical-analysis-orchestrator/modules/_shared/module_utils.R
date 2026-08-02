@@ -138,6 +138,19 @@ medical_figure_palette <- function() {
   )
 }
 
+medical_figure_colors <- function(n, alpha = 1) {
+  n <- as.integer(n)
+  if (!is.finite(n) || n < 1L) return(character())
+  palette <- unname(medical_figure_palette()[
+    c("accent", "warning", "neutral")
+  ])
+  colors <- rep(palette, length.out = n)
+  if (!identical(as.numeric(alpha), 1)) {
+    colors <- grDevices::adjustcolor(colors, alpha.f = as.numeric(alpha))
+  }
+  colors
+}
+
 medical_figure_theme <- function(base_size = 7, base_family = "Arial") {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("medical-academic-v1 需要 R 包 ggplot2。", call. = FALSE)
@@ -167,6 +180,29 @@ apply_medical_figure_template <- function(plot, base_size = 7) {
     stop("apply_medical_figure_template 需要 ggplot 或 patchwork 对象。", call. = FALSE)
   }
   plot + medical_figure_theme(base_size = base_size)
+}
+
+apply_medical_base_figure_template <- function(settings, multi_panel = FALSE) {
+  if (!is.list(settings)) {
+    stop("基础图形模板设置必须为 list。", call. = FALSE)
+  }
+  graphics::par(
+    family = settings$font_family %||% "Arial",
+    bg = "white",
+    fg = "black",
+    col.axis = "black",
+    col.lab = "black",
+    col.main = "black",
+    bty = "l",
+    las = 1,
+    mgp = c(2.2, .65, 0),
+    tcl = -.25,
+    cex = if (isTRUE(multi_panel)) .82 else .9,
+    cex.axis = if (isTRUE(multi_panel)) .78 else .86,
+    cex.lab = if (isTRUE(multi_panel)) .82 else .9,
+    cex.main = if (isTRUE(multi_panel)) .86 else .94
+  )
+  invisible(settings)
 }
 
 open_r_figure_device <- function(path, format, width_in, height_in, dpi) {
@@ -224,6 +260,7 @@ export_r_figure <- function(
   for (format in settings$formats) {
     path <- file.path(context$module_output_dir, paste0(file_stem, ".", format))
     device_open <- FALSE
+    old_par <- NULL
     tryCatch(
       {
         open_r_figure_device(
@@ -231,11 +268,13 @@ export_r_figure <- function(
         )
         device_open <- TRUE
         old_par <- graphics::par(no.readonly = TRUE)
-        on.exit(graphics::par(old_par), add = TRUE)
-        graphics::par(family = settings$font_family)
+        apply_medical_base_figure_template(settings)
         plot_function()
       },
       finally = {
+        if (!is.null(old_par) && grDevices::dev.cur() > 1L) {
+          try(graphics::par(old_par), silent = TRUE)
+        }
         if (device_open && grDevices::dev.cur() > 1L) {
           grDevices::dev.off()
         }
@@ -247,7 +286,9 @@ export_r_figure <- function(
       editable_text = format %in% c("svg", "pdf"),
       width_mm = width_mm,
       height_mm = height_mm,
-      dpi = if (format %in% c("png", "tiff")) settings$dpi else NULL
+      dpi = if (format %in% c("png", "tiff")) settings$dpi else NULL,
+      template = settings$template,
+      font_family = settings$font_family
     )
   }
   exports
@@ -312,7 +353,8 @@ new_figure_object <- function(
     conclusion = conclusion,
     evidence_role = evidence_role,
     statistics = statistics,
-    source_module = source_module
+    source_module = source_module,
+    template = exports[[1L]]$template %||% "custom"
   )
 }
 

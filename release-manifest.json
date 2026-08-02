@@ -1,0 +1,340 @@
+{
+  "schema_version": "1.0",
+  "project": "medical-analysis-orchestrator",
+  "version": "0.0.5",
+  "source_root": "medical-analysis-orchestrator",
+  "files": {
+    "agents/openai.yaml": {
+      "sha256": "9b79369c379e13f2c96f47cd972d14a780b6fe4e6afa791860232dd8d7ee47df",
+      "size": 314
+    },
+    "assets/figure-template/medical-academic-v1-contact-sheet.png": {
+      "sha256": "9547fe99380837df3f9c8a3593c0d43c2b56dea4b562802888b4392d2415a8bc",
+      "size": 627861
+    },
+    "LICENSE.txt": {
+      "sha256": "2b1b79cf907441a98c6cca3bf263d09174a1252799248f6a2175c807000b7ca7",
+      "size": 1111
+    },
+    "modules/_shared/module_utils.R": {
+      "sha256": "82c4bd704006bc0da48443b4b3b90969f7e008e5c43cd1694b67d55c3a0e2728",
+      "size": 17934
+    },
+    "modules/bayesian/analysis.R": {
+      "sha256": "13c39f1da3cd127ac2ae93d8e2974e99fc13be2d63119c5c5e3f30fb3788ecae",
+      "size": 6820
+    },
+    "modules/bayesian/module.yml": {
+      "sha256": "e62cde3abddffb1b97c401c22f2b0e5927b2c1d05a8ef5b2f0d373bbb00dc651",
+      "size": 674
+    },
+    "modules/competing-risks/analysis.R": {
+      "sha256": "b95970ce0cc5e61300a6dd00faf5a2800b67a47d950c1db72151038bf54e8497",
+      "size": 6633
+    },
+    "modules/competing-risks/module.yml": {
+      "sha256": "12487d99e415b74cbe03588fff4c8e999c36dcbb6d97d2a25a6b534751c8c234",
+      "size": 774
+    },
+    "modules/correlation/analysis.R": {
+      "sha256": "e4faceab01638647c629359e2e1ebaf39a7dc3fe7211a3d632f9503c327782d1",
+      "size": 4268
+    },
+    "modules/correlation/module.yml": {
+      "sha256": "a186296258e06feac59a18b06189e9aaef9368d2680186387317f8e2a6401de8",
+      "size": 539
+    },
+    "modules/descriptive/analysis.R": {
+      "sha256": "6aca9359900cb9f583b855b30126214cbdc1cf4152533b5fb278a01ad937f7e6",
+      "size": 4294
+    },
+    "modules/descriptive/module.yml": {
+      "sha256": "8e94434512460a91bff0ef4bd0c6a5786f44033e7663870225ee2c921cf8649c",
+      "size": 506
+    },
+    "modules/diagnostic-accuracy/analysis.R": {
+      "sha256": "4e06555aff8da899173bb1b994923296958bddd60db79be74f97cdf0ccbfa130",
+      "size": 7871
+    },
+    "modules/diagnostic-accuracy/module.yml": {
+      "sha256": "73273e5a8b0064edb79174f8217e336fe895069b7b6bf2bb22b35561f4b5ac84",
+      "size": 796
+    },
+    "modules/factor-analysis/analysis.R": {
+      "sha256": "2eb7f5ca850eb3c397baeb358afc8c7ddae621d8b2324cd005305509dc242ab7",
+      "size": 17708
+    },
+    "modules/factor-analysis/module.yml": {
+      "sha256": "6a22b3577c2c79f236a8e3254336bd6327754f6cca95e24806c3c23ff235347f",
+      "size": 1043
+    },
+    "modules/gee/analysis.R": {
+      "sha256": "acb9e51be1363437b5a8f96f5f4ebe062c44faf3a05cabf03168423af375c676",
+      "size": 7762
+    },
+    "modules/gee/module.yml": {
+      "sha256": "c42c67e6e24a38f705350fb98e27d5dc9c91a90e007f0c5abe84331a40bfe31f",
+      "size": 681
+    },
+    "modules/generalized-regression/analysis.R": {
+      "sha256": "80f64cd68b8b3fe5f9af8bf8c3581c9c0a91d824f596294b024cef464fc18c17",
+      "size": 10066
+    },
+    "modules/generalized-regression/module.yml": {
+      "sha256": "925103c9a81c41d403c5c7dc774ac453577063fb247503c137e534a4b81ebe45",
+      "size": 846
+    },
+    "modules/group-comparison/analysis.R": {
+      "sha256": "9af48498d030bc50da40312df33f0f06963fc8181c5ce47943efda3a2d5811a1",
+      "size": 14380
+    },
+    "modules/group-comparison/module.yml": {
+      "sha256": "8f6c3e4435e65fb754e8e99dc701e7d64c5a6c27f9a177bd797cbe4dfa44cc2a",
+      "size": 714
+    },
+    "modules/linear-regression/analysis.R": {
+      "sha256": "19780d522d63498a9ada267179d4ae1184ac3f06a2d921e6a76685d191708706",
+      "size": 10338
+    },
+    "modules/linear-regression/module.yml": {
+      "sha256": "cc0f61c82e225af44c9bb96902c8e7d7fba2db3160e5e12310b0e368e99398e7",
+      "size": 655
+    },
+    "modules/logistic-regression/analysis.R": {
+      "sha256": "170c30f09afc79888ca03b558bf0c5e1b51869e55d62f25e0e125ade326c5fcd",
+      "size": 11400
+    },
+    "modules/logistic-regression/module.yml": {
+      "sha256": "ea9c96bc6b554b4894a625fab6f247aa08a9368bbae9155e799797aff7611543",
+      "size": 782
+    },
+    "modules/measurement-invariance/analysis.R": {
+      "sha256": "5a70be5213458f655821633fc3c3a83b689a11998a9dc991803ef1c82e872b3d",
+      "size": 5265
+    },
+    "modules/measurement-invariance/module.yml": {
+      "sha256": "eb72e8191657be799f36f3522f34222063ede6175a7bd52272e604707ddcabd3",
+      "size": 723
+    },
+    "modules/missing-data/analysis.R": {
+      "sha256": "d1ea4df2c174e8eab7354381bb49f5867bbb6ed74d38c3614f2822d95caa2be9",
+      "size": 6875
+    },
+    "modules/missing-data/module.yml": {
+      "sha256": "59432e9c0b197bb833c98e0bf111ddc5463b6b4ba9ca64ac060ccb9159a1e9c3",
+      "size": 660
+    },
+    "modules/mixed-effects/analysis.R": {
+      "sha256": "2d74702eb7dd16ec89e45dbf69765a17c7d7c14e845595b419df6b7443d48e06",
+      "size": 14339
+    },
+    "modules/mixed-effects/module.yml": {
+      "sha256": "c1373fae038b36ab603e5031d43fd4d267b879ac484cdeb57c5ded695dc9d0b6",
+      "size": 835
+    },
+    "modules/network/analysis.R": {
+      "sha256": "9783e61c7e98f96e70125e6f80f980f3d3852b375ec25af22feacc850f19572f",
+      "size": 6915
+    },
+    "modules/network/module.yml": {
+      "sha256": "2b69cb439f5116fcdead74bef638035ba0639513b4da41c6f795a1dc112af9b8",
+      "size": 669
+    },
+    "modules/propensity-score/analysis.R": {
+      "sha256": "fda7d989f9fbd36eeee34de6ee429070a6d3cf9ea016e9ad508c86d6a9ec3b7a",
+      "size": 8992
+    },
+    "modules/propensity-score/module.yml": {
+      "sha256": "161b93187bf87dda555c442bb811dde349a7466eb872fd0b003e90d047c32966",
+      "size": 793
+    },
+    "modules/registry.yml": {
+      "sha256": "93a6b1a6b5ce17dcf898e3185c860843e5ddd1f3309f193504d9c46c4e7267a0",
+      "size": 1900
+    },
+    "modules/reliability-validity/analysis.R": {
+      "sha256": "92dc905196232348fba249a92a7b158e7bd850de7e7f7a6db6c21a0d483c467e",
+      "size": 10924
+    },
+    "modules/reliability-validity/module.yml": {
+      "sha256": "4b05c48b348f8e06a8f4937cb8fdee8ba5fbf8142e5a9b28591ab3e8ba41e173",
+      "size": 776
+    },
+    "modules/sem/analysis.R": {
+      "sha256": "d9fa506099acd5f1cd3bd7677b4ab9b7e6e5c85470e4bb68c8b87ee58d853064",
+      "size": 4123
+    },
+    "modules/sem/module.yml": {
+      "sha256": "a7b553a5caa17d597659f8adf107a1d822d8c7080f9b35852b32cc921f8e746f",
+      "size": 587
+    },
+    "modules/survival/analysis.R": {
+      "sha256": "980b2cf367d0d87470123f7331e44ee02324a5d8cd57ef075056b94539a066f1",
+      "size": 7878
+    },
+    "modules/survival/module.yml": {
+      "sha256": "46b68f52ac580f1d175649d0cd906554cb25df1632aee073d778e0662c9e0b13",
+      "size": 762
+    },
+    "references/academic-reporting-style.md": {
+      "sha256": "eb690ce54fcbd843ab17fbb41b19c0e21ccc12bc20b0c5e9ef97409f102b65d1",
+      "size": 3092
+    },
+    "references/cleaning-policy.md": {
+      "sha256": "f84bfe3d73dd1653aece7dcee2f007484f039ada5f3f84da0efe6dbdf4622769",
+      "size": 1593
+    },
+    "references/config-schema.md": {
+      "sha256": "6d5b29efb41cf2c46417682e1809ad49eccabf5894d767151bc2c0c338c72260",
+      "size": 5410
+    },
+    "references/data-input-contract.md": {
+      "sha256": "f3256a9e55fca42246405eb832d69d7199267e49344c238622004b9746d7da54",
+      "size": 2186
+    },
+    "references/data-quality-rules.md": {
+      "sha256": "15f80a982fa9071f5763857c23e6b0c6f32759717feec94062f453bd2fe6ee3a",
+      "size": 3017
+    },
+    "references/figure-template-default.md": {
+      "sha256": "b912958e830a0f390564f2675410b4298ef80607b390f05d35fb4efedc23410c",
+      "size": 3596
+    },
+    "references/method-selection-rules.md": {
+      "sha256": "fda7930a1f46031f9fcde31b452f1a82161350d8c6039a9eb710c6a014de47b0",
+      "size": 5036
+    },
+    "references/mixed-effects-rules.md": {
+      "sha256": "a56b47dd8152ac89e9381f576a889c4a195f3b987cacc5db40b9bb279bef0951",
+      "size": 1281
+    },
+    "references/module-contract.md": {
+      "sha256": "3cb73c24be58ce1dd33e32a42f3a1154536bc941b03f751249ff2fb146c09e8b",
+      "size": 2289
+    },
+    "references/output-contract.md": {
+      "sha256": "3f8d7e45e2c7f2db864b93de6f2e17a18942ca5a26dc3671dd8ba53b1316fda4",
+      "size": 2826
+    },
+    "references/package-registry.md": {
+      "sha256": "4459c250df0d55fd9c918fc85db6a33a42c58afad90446a1fe36aa963f81164d",
+      "size": 2800
+    },
+    "references/psychometrics-rules.md": {
+      "sha256": "aaf5a893fc00901f88e6dfb08a83d5ab1fab6a5fc6d1a8fe563320f0f2a35540",
+      "size": 1975
+    },
+    "references/r-figure-contract.md": {
+      "sha256": "568e427bd8cb865104f9051dbbf7b03d213c4ef2a4b5adcc7ee1914b8b1f8df2",
+      "size": 2706
+    },
+    "references/report-template.md": {
+      "sha256": "702ff8aa668f6dfd27c6c4d0f91b750dd98219576708a7885c6687ca22c1e525",
+      "size": 2157
+    },
+    "references/result-object-schema.md": {
+      "sha256": "1047e83dc26f78523316f2d996b3eb258ac5fab67d802a0ba76167e7b612536c",
+      "size": 1549
+    },
+    "references/scientific-writing-contract.md": {
+      "sha256": "942518d504c6ecacc925d0751f5fddb22a2b3cf76d9f8958a3f0f5274487958f",
+      "size": 2962
+    },
+    "references/variable-dictionary-contract.md": {
+      "sha256": "064d29f6ca5fee1cf09f6d358d964b381d365e8019245910f3304d51a5474821",
+      "size": 1553
+    },
+    "scripts/build_report.py": {
+      "sha256": "d45f66f2e61857ca709759f2322743f2c94b9d27033ce7fff8c56939452ee1c6",
+      "size": 28621
+    },
+    "scripts/confirm_plan.py": {
+      "sha256": "1f6c921d69749757d311af61a66a233d306f4bfd8bccb7f72589bc220dd66138",
+      "size": 1611
+    },
+    "scripts/detect_python_environment.py": {
+      "sha256": "02c7225538f9b7a91437d2956fc42d84d8d19a2aa4379434f7098cdd6ea8f1ad",
+      "size": 5069
+    },
+    "scripts/detect_r_environment.py": {
+      "sha256": "da80ee40bc3871e79221ac6e04aee200d8fcaed7d34d547feb3e8d88b8bb374c",
+      "size": 12825
+    },
+    "scripts/detect_r_environment.R": {
+      "sha256": "b722ff4c33c3078b30357464ad9400cf51341e835ad879bc91c8a228fba8882f",
+      "size": 2537
+    },
+    "scripts/generate_audit_report.py": {
+      "sha256": "8b7c777997572b34be34501b558da970f23f4cd9bdeb932a87a626431e24e994",
+      "size": 4014
+    },
+    "scripts/generate_example_data.py": {
+      "sha256": "86a80c61a8768d828d86ae7c09dc9eda0b9faaab5b7e88a6aa1010592abc2de0",
+      "size": 6567
+    },
+    "scripts/inspect_data.py": {
+      "sha256": "eaf84eec9b0d851506691259470b42b7e2bdc54d29cb9b5eed119449ca681ea9",
+      "size": 32002
+    },
+    "scripts/install_packages.R": {
+      "sha256": "79e337483cf925ddc5634324c5aab2c434078dd44a7b7e40023efe8982990cbc",
+      "size": 4453
+    },
+    "scripts/install_python_packages.py": {
+      "sha256": "60a69fda75e499d0f3798479fb3a183bb86a4eb66b4e7e8fbdcda6c54556430f",
+      "size": 2862
+    },
+    "scripts/manage_renv.R": {
+      "sha256": "3cce051bd35efe67ff85a8ac7c004514937a70fc4f26eabfe2a99eb933a82a15",
+      "size": 3536
+    },
+    "scripts/prepare_data.py": {
+      "sha256": "b1f7cbf15c2f585f379152a374642cb086c6532b2937e24c19239e5ab8905fd3",
+      "size": 12989
+    },
+    "scripts/recommend_analysis.py": {
+      "sha256": "ba97f0125f8c45db865bbc57807595d0c6ea236b993c961c99a8b279df1bcb07",
+      "size": 27720
+    },
+    "scripts/run_analysis.R": {
+      "sha256": "eb6e6ce6fde0c7e9c136c14f0c700332f78af5f5e2eaed9e31e1906fe4fbe6f9",
+      "size": 7261
+    },
+    "scripts/run_pipeline.py": {
+      "sha256": "1d12da8def9ff67071b2f73e70f1f1797aeeb939b7ae4477a1fc4b5b0b475d64",
+      "size": 12634
+    },
+    "scripts/run_r.py": {
+      "sha256": "76faa65ba7b03d33c2a5395f73b9db60564a6922e5404fb6cac20902ff7c4680",
+      "size": 3005
+    },
+    "scripts/update_manifest.py": {
+      "sha256": "f9d385ba4e17f7a2b068148c061b8cdef210e62fe265f655ab86a93aca8c2a7d",
+      "size": 5742
+    },
+    "scripts/validate_config.py": {
+      "sha256": "670ba7f81093a0e936f4162454dfd6d7ada6c8886657aecc2adef07e541ca4ff",
+      "size": 43120
+    },
+    "scripts/validate_outputs.py": {
+      "sha256": "b587c6e727045c70d3d11da9f68261cd3a08faaf6b5ec103da996045e6149231",
+      "size": 18306
+    },
+    "scripts/verify_visual_regression.py": {
+      "sha256": "9b3918963e5776f02234935206bdb8b78772f48d6a21593d6b8119d7c70e45eb",
+      "size": 5261
+    },
+    "scripts/write_environment_manifest.py": {
+      "sha256": "e4ffce7784271c4a750d8beb7feb9d848f7e5e7643cff38523963c48b567baf8",
+      "size": 1953
+    },
+    "SKILL.md": {
+      "sha256": "810d020a9f1dabfaf4f6153d22dee603a183744eb7aee4872b20a9514e554c82",
+      "size": 12720
+    },
+    "templates/analysis_config.yml": {
+      "sha256": "4a3666b80ad4d8baf3aca0712f9203cb6c2a99ac8c6f06a00b38c7852ac7e032",
+      "size": 6783
+    }
+  }
+}

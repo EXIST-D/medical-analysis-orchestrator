@@ -50,7 +50,7 @@ run_module <- function(config, context) {
   if(subset$n_excluded_missing>0L)warnings<-c(warnings,paste0("因模型变量缺失排除 ",subset$n_excluded_missing," 行。"))
   figure_source<-data.frame(observation_index=seq_along(fitted),fitted_value=as.numeric(fitted),pearson_residual=as.numeric(pearson),cluster=as.character(data[[id_variable]]),stringsAsFactors=FALSE)
   source_path<-write_figure_source_data(context,"gee_diagnostics",figure_source)
-  plot_diagnostics<-function(){graphics::plot(fitted,pearson,xlab="拟合值",ylab="Pearson 残差",main="GEE 拟合诊断");graphics::abline(h=0,lty=2,col="grey50")}
+  plot_diagnostics<-function(){palette<-medical_figure_palette();graphics::plot(fitted,pearson,xlab="拟合值",ylab="Pearson 残差",main="GEE 拟合诊断",col=palette[["accent"]],pch=16,cex=.55);graphics::abline(h=0,lty=2,col=palette[["neutral"]])}
   exports<-export_r_figure(config,context,"01_GEE拟合诊断图",plot_diagnostics,width_mm=145,height_mm=115)
   model_path<-file.path(context$module_output_dir,"01_GEE模型.rds");saveRDS(model,model_path)
   tables<-list(write_result_table(context,"gee","01_GEE系数","GEE 系数",coefficients),write_result_table(context,"gee","02_GEE模型摘要","GEE 模型摘要",model_summary),write_result_table(context,"gee","03_GEE诊断","GEE 诊断",diagnostics_table))

@@ -30,7 +30,7 @@ run_module <- function(config, context) {
   source_path<-write_figure_source_data(context,"bayesian_network_edges",edge_table)
   graph<-igraph::make_empty_graph(n=length(nodes),directed=TRUE);igraph::V(graph)$name<-nodes
   if(nrow(edge_table))graph<-igraph::add_edges(graph,as.vector(t(as.matrix(edge_table[,c("from","to")]))))
-  plot_network<-function(){set.seed(context$random_seed);igraph::plot.igraph(graph,layout=igraph::layout_with_fr(graph),vertex.color="white",vertex.frame.color="black",vertex.label.color="black",edge.color="grey30",edge.arrow.size=.45,main="Bootstrap 平均贝叶斯网络")}
+  plot_network<-function(){palette<-medical_figure_palette();set.seed(context$random_seed);igraph::plot.igraph(graph,layout=igraph::layout_with_fr(graph),vertex.color="white",vertex.frame.color="black",vertex.label.color="black",edge.color=palette[["accent"]],edge.arrow.size=.45,main="Bootstrap 平均贝叶斯网络")}
   exports<-export_r_figure(config,context,"01_贝叶斯网络图",plot_network,width_mm=160,height_mm=140)
   model_path<-file.path(context$module_output_dir,"01_贝叶斯网络模型.rds");saveRDS(list(initial=network,bootstrap_strength=boot_strength,averaged=averaged,score=score,constraints=list(whitelist=whitelist,blacklist=blacklist)),model_path)
   tables<-list(write_result_table(context,"bayesian","01_贝叶斯网络边","贝叶斯网络稳定边",edge_table),write_result_table(context,"bayesian","02_Bootstrap边强度","Bootstrap 边强度与方向",strength_table,c("strength 表示边出现比例；direction 为在该方向与反方向之间的条件方向比例。")))
