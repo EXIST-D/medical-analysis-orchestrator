@@ -260,6 +260,7 @@ reporting:
     - "csv"
     - "xlsx"
   figure_contract:
+    template: "medical-academic-v1"
     profile: "analysis"
     backend: "R"
     formats:

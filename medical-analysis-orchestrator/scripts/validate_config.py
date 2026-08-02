@@ -158,7 +158,7 @@ def validate_config_shape(config: dict[str, Any], errors: list[str]) -> None:
     reporting = config.get("reporting") or {}
     reject_unknown_keys(
         reporting.get("figure_contract"),
-        {"profile", "backend", "formats", "width_mm", "height_mm", "dpi", "require_source_data", "require_statistics_metadata", "require_editable_text"},
+        {"template", "profile", "backend", "formats", "width_mm", "height_mm", "dpi", "require_source_data", "require_statistics_metadata", "require_editable_text"},
         "reporting.figure_contract", errors,
     )
     reject_unknown_keys(
@@ -389,6 +389,11 @@ def validate_reporting_contract(
 ) -> None:
     reporting = config.get("reporting") or {}
     figure_contract = reporting.get("figure_contract") or {}
+    template = str(figure_contract.get("template") or "medical-academic-v1").lower()
+    if template not in {"medical-academic-v1", "custom"}:
+        errors.append(
+            "reporting.figure_contract.template must be medical-academic-v1 or custom"
+        )
     profile = str(figure_contract.get("profile") or "analysis").lower()
     backend = str(figure_contract.get("backend") or "R")
     formats_value = figure_contract.get("formats")

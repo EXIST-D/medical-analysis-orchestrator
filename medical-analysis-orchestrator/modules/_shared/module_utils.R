@@ -94,6 +94,10 @@ relative_path <- function(path, root) {
 figure_contract_settings <- function(config) {
   reporting <- config$reporting %||% list()
   contract <- reporting$figure_contract %||% list()
+  template <- tolower(as.character(contract$template %||% "medical-academic-v1"))
+  if (!template %in% c("medical-academic-v1", "custom")) {
+    stop("不支持的 R 图形模板：", template, call. = FALSE)
+  }
   formats <- contract$formats %||% reporting$figure_formats %||% c("png")
   formats <- unique(tolower(as.character(formats)))
   allowed <- c("png", "svg", "pdf", "tiff")
@@ -105,6 +109,7 @@ figure_contract_settings <- function(config) {
     )
   }
   list(
+    template = template,
     profile = tolower(as.character(contract$profile %||% "analysis")),
     backend = toupper(as.character(contract$backend %||% "R")),
     formats = formats,
@@ -117,8 +122,51 @@ figure_contract_settings <- function(config) {
     ),
     require_editable_text = isTRUE(
       contract$require_editable_text %||% FALSE
-    )
+    ),
+    font_family = if (identical(template, "medical-academic-v1")) "Arial" else "sans"
   )
+}
+
+medical_figure_palette <- function() {
+  c(
+    control = "#707070",
+    intervention_a = "#2B6CB0",
+    intervention_b = "#D97706",
+    neutral = "#707070",
+    accent = "#2B6CB0",
+    warning = "#D97706"
+  )
+}
+
+medical_figure_theme <- function(base_size = 7, base_family = "Arial") {
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    stop("medical-academic-v1 需要 R 包 ggplot2。", call. = FALSE)
+  }
+  ggplot2::theme_classic(base_size = base_size, base_family = base_family) +
+    ggplot2::theme(
+      axis.line = ggplot2::element_line(linewidth = .35, colour = "black"),
+      axis.ticks = ggplot2::element_line(linewidth = .35, colour = "black"),
+      axis.text = ggplot2::element_text(size = base_size - .6, colour = "black"),
+      axis.title = ggplot2::element_text(size = base_size),
+      legend.text = ggplot2::element_text(size = base_size - .8),
+      legend.title = ggplot2::element_text(size = base_size - .4),
+      strip.text = ggplot2::element_text(size = base_size - .2, face = "bold"),
+      plot.title = ggplot2::element_text(size = base_size + .8, face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = base_size - .4),
+      plot.caption = ggplot2::element_text(
+        size = base_size - 1.2, colour = "#4A4A4A", hjust = 0
+      ),
+      plot.tag = ggplot2::element_text(size = base_size + 1.2, face = "bold"),
+      panel.grid = ggplot2::element_blank(),
+      plot.margin = ggplot2::margin(4, 5, 4, 4, unit = "pt")
+    )
+}
+
+apply_medical_figure_template <- function(plot, base_size = 7) {
+  if (!inherits(plot, c("gg", "ggplot", "patchwork"))) {
+    stop("apply_medical_figure_template 需要 ggplot 或 patchwork 对象。", call. = FALSE)
+  }
+  plot + medical_figure_theme(base_size = base_size)
 }
 
 open_r_figure_device <- function(path, format, width_in, height_in, dpi) {
@@ -130,18 +178,18 @@ open_r_figure_device <- function(path, format, width_in, height_in, dpi) {
     ),
     svg = grDevices::svg(
       path, width = width_in, height = height_in,
-      onefile = TRUE, family = "sans"
+      onefile = TRUE, family = "Arial"
     ),
     pdf = {
       if (isTRUE(capabilities("cairo"))) {
         grDevices::cairo_pdf(
           path, width = width_in, height = height_in,
-          onefile = TRUE, family = "sans"
+          onefile = TRUE, family = "Arial"
         )
       } else {
         grDevices::pdf(
           path, width = width_in, height = height_in,
-          onefile = TRUE, family = "sans"
+          onefile = TRUE, family = "Arial"
         )
       }
     },
@@ -182,6 +230,9 @@ export_r_figure <- function(
           path, format, width_in, height_in, settings$dpi
         )
         device_open <- TRUE
+        old_par <- graphics::par(no.readonly = TRUE)
+        on.exit(graphics::par(old_par), add = TRUE)
+        graphics::par(family = settings$font_family)
         plot_function()
       },
       finally = {

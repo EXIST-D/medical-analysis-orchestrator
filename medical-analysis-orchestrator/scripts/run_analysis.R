@@ -175,6 +175,16 @@ package_names <- unique(c(
     character(1)
   )
 ))
+figure_template_value <- config$reporting$figure_contract$template
+if (is.null(figure_template_value) || !length(figure_template_value)) {
+  figure_template_value <- "medical-academic-v1"
+}
+figure_template <- tolower(as.character(figure_template_value))
+if (identical(figure_template, "medical-academic-v1")) {
+  package_names <- unique(c(
+    package_names, "ggplot2", "patchwork", "ragg", "svglite", "png"
+  ))
+}
 installed <- installed.packages()
 package_table <- data.frame(
   package = package_names,

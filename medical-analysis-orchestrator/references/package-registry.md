@@ -9,6 +9,7 @@
 | 配置与结果序列化 | `yaml`, `jsonlite` |
 | 文件指纹 | `digest` |
 | 三线表 XLSX | `openxlsx2` |
+| 默认学术绘图模板 | `ggplot2`, `patchwork`, `ragg`, `svglite`, `png` |
 
 基础统计模块的计算尽量使用 base R；独立的诊断准确性模块把 `pROC` 作为必需依赖，Logistic 回归自身仍不依赖它。
 

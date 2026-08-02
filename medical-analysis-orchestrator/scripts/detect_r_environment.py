@@ -218,6 +218,17 @@ def selected_packages(config: dict[str, Any], skill_root: Path) -> list[dict[str
                     )
         except Exception:
             continue
+    figure_contract = ((config.get("reporting") or {}).get("figure_contract") or {})
+    figure_template = str(figure_contract.get("template") or "medical-academic-v1").lower()
+    if figure_template == "medical-academic-v1":
+        for name, minimum in {
+            "ggplot2": "3.4.0",
+            "patchwork": "1.1.0",
+            "ragg": "1.2.0",
+            "svglite": "2.1.0",
+            "png": "0.1.8",
+        }.items():
+            packages.setdefault(name, minimum)
     return [
         {"name": name, "minimum_version": packages[name]}
         for name in sorted(packages)

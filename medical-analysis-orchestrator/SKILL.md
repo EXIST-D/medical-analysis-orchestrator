@@ -57,6 +57,7 @@ description: 通用医学数据分析编排 Skill。用于读取 CSV、Excel、D
 - [输出契约](references/output-contract.md)
 - [报告模板](references/report-template.md)
 - 制作或验证统计图时读取 [R 图形证据契约](references/r-figure-contract.md)。
+- 默认使用 [medical-academic-v1 学术绘图模板](references/figure-template-default.md)；该模板的联系表预览位于 `assets/figure-template/medical-academic-v1-contact-sheet.png`。
 - 启用论文写作支持时读取 [科学写作支持契约](references/scientific-writing-contract.md)。
 - 组织学术结果、图注或讨论边界时同时读取 [学术报告表述与报告风格](references/academic-reporting-style.md)。
 
@@ -206,6 +207,8 @@ Word 正文中文宋体、英文和数字 Times New Roman、小四 12 pt、1.5 �
 当配置 `reporting.visual_regression.require_renderer: true` 时，缺少 LibreOffice 页面渲染器将使报告阶段失败；默认模式会登记“渲染器不可用”，但不声称已完成视觉审查。
 
 图形使用 `reporting.figure_contract.profile` 控制：
+
+默认 `reporting.figure_contract.template` 为 `medical-academic-v1`。它采用 R-only 绘图、Arial、白底、无网格线和克制的蓝/橙/灰配色，并为每个当前模块提供可审计的候选图形族。用户可以覆盖尺寸、分辨率、输出格式或改用 `custom`，但自定义图形仍必须遵守 R 图形证据契约和统一视觉 QA。
 
 - `analysis`：常规报告档位，默认 PNG，但仍要求 R 生成、Source Data 和统计元数据。
 - `manuscript`：论文档位，要求 PNG、SVG、PDF、TIFF 和 Source Data。

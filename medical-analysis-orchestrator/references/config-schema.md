@@ -70,6 +70,7 @@ analysis.parameters.bayesian
 `reporting.figure_contract` 包含：
 
 ```text
+template
 profile
 backend
 formats

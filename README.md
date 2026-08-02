@@ -24,6 +24,14 @@ Skill 先以只读方式识别文件、数据集、变量类型、缺失、重�
 - **交付物工程化**：生成清晰编号的 CSV、三线表 XLSX、R 图形、Source Data、诊断信息和中文 Word 报告。
 - **论文支持受控**：论文主张必须由用户确认并解析到同一次运行的表或图，不能根据显著性自动生成论文结论。
 
+## 默认学术绘图模板
+
+当前默认图形模板为 `medical-academic-v1`：由 R 完成绘图、预览和导出，采用白底、Arial、无面板网格线和克制的蓝/橙/灰配色；每张图同时登记 Source Data、统计元数据和解释边界。它覆盖描述性统计、组间比较、相关分析、回归、信效度、因子分析、纵向模型、生存、诊断准确性、倾向评分、SEM、网络和贝叶斯网络等当前模块。
+
+![medical-academic-v1 默认模板总览](medical-analysis-orchestrator/assets/figure-template/medical-academic-v1-contact-sheet.png)
+
+也可以直接查看本机测试版本的[总览联系表](D:/User/Desktop/开发/SKILLS/01medical-analysis-orchestrator测试/06_可视化绘图测试_v0.0.5/03_图形输出/00_审核联系表.png)。后续如发现更合适的论文图形，可在保持 R 图形证据契约和视觉 QA 的前提下逐图替换或补充。
+
 ## 仓库结构
 
 ```text
