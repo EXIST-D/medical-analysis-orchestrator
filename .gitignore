@@ -8,6 +8,8 @@
 .coverage
 coverage.xml
 htmlcov/
+tests/_matrix_runs/
+matrix-output/
 
 # Runtime and generated analysis outputs
 runtime/
