@@ -30,7 +30,7 @@ description: 通用医学数据分析编排 Skill。用于读取 CSV、Excel、D
 - 横断面关联、网络边和贝叶斯网络方向不得表述为确定因果关系。
 - 报告只能消费同一 `run_id` 下已验证的统一结果对象，不能手工拼接不同运行结果。
 - 记录输入 SHA-256、方案 SHA-256、R 版本、包版本、随机种子、模型对象和输出文件哈希。
-- 默认不在日志、manifest 或报告中输出逐行患者数据。
+- 默认不在日志、manifest、Word 正文或补充附件中输出逐行患者数据。
 - 所有统计图形由 R 生成；Python 只允许编排、验证和嵌入报告，不得重新计算或重绘。
 - 每张定量图必须登记 Source Data、证据角色、结论边界和完整统计元数据。
 - 论文级主张必须由用户确认并解析到同一运行的表或图；不得由显著性结果自动生成论文结论。
@@ -56,10 +56,10 @@ description: 通用医学数据分析编排 Skill。用于读取 CSV、Excel、D
 - [统一结果对象](references/result-object-schema.md)
 - [输出契约](references/output-contract.md)
 - [报告模板](references/report-template.md)
+- [医学期刊结果表呈现规范](references/medical-table-presentation.md)
 - 制作或验证统计图时读取 [R 图形证据契约](references/r-figure-contract.md)。
 - 默认使用 [medical-academic-v1 学术绘图模板](references/figure-template-default.md)；该模板的联系表预览位于 `assets/figure-template/medical-academic-v1-contact-sheet.png`。
-- 启用论文写作支持时读取 [科学写作支持契约](references/scientific-writing-contract.md)。
-- 组织学术结果、图注或讨论边界时同时读取 [学术报告表述与报告风格](references/academic-reporting-style.md)。
+- 生成默认论文初稿时读取 [科学写作支持契约](references/scientific-writing-contract.md) 与 [学术报告表述与报告风格](references/academic-reporting-style.md)。
 
 ## 1. 数据探查
 
@@ -122,6 +122,7 @@ python scripts/recommend_analysis.py --profile "<run目录>/data_profile.json" -
 从 [templates/analysis_config.yml](templates/analysis_config.yml) 补齐配置，尤其是：
 
 - 研究问题与研究设计；
+- 可选的 `research.title`、`research.background` 与 `research.keywords`（未提供时生成无文献、无机制断言的默认文本）；
 - 主要结局、事件水平、分组变量、预测变量与参照水平；
 - 缺失值、排除、重编码和转换规则；
 - 模块与参数；
@@ -167,7 +168,7 @@ python scripts/run_pipeline.py --config "<run目录>/analysis_plan.yml"
 6. 按注册顺序执行 R 模块；
 7. 保存统一 JSON/RDS 结果对象、模型对象、图形和表格，并锁定运行环境；
 8. 重建 manifest 并校验文件哈希与模块顺序；
-9. 只从已验证结果生成 Word 报告和学术表述审计；
+9. 只从已验证结果生成学术论文初稿、运行级补充 Markdown 和学术表述审计；
 10. 在可用时对 Word/XLSX 做 LibreOffice 页面渲染回归，并再次执行 report 级验证。
 
 ## 6. 输出格式
@@ -202,7 +203,9 @@ runtime/
 
 XLSX 使用无底色、无多余颜色、隐藏网格线的三线表；中文宋体，英文和数字 Times New Roman。CSV 保持机器可读，不承诺字体和边框。
 
-Word 正文中文宋体、英文和数字 Times New Roman、小四 12 pt、1.5 倍行距、首行缩进 2 字符。表格与图形来自同一统一结果对象，完整高维表保留在 CSV/XLSX，Word 只展示适合阅读的摘要。
+Word 默认输出为“医学统计分析论文初稿”：中文宋体、英文和数字 Times New Roman、小四 12 pt、1.5 倍行距、首行缩进 2 字符，并使用可识别的期刊式分级大纲（摘要、关键词、引言、资料与方法、结果、讨论）。用户未提供背景时，仅生成不含外部文献或虚构机制的中性背景；用户提供 `research.title`、`research.background` 或 `research.keywords` 时优先采用。表格与图形来自同一统一结果对象，完整高维表保留在 CSV/XLSX；结果表默认采用 `medical-journal-v1`：读者友好列名、经确认的变量标签与单位、首列左对齐、效应量与 95% CI 合并、分类自变量参照水平表注，以及表内精确 P 值且无阈值星号。每个进入正文的图表后均以自然的期刊式叙述嵌入编号（如“如表 2 所示”“进一步分析显示（图 1）”），报告其回答的问题、比较/模型条件及可用的样本量、效应量、区间或 P 值，随后以与研究设计匹配的谨慎语言概括统计含义。不得使用“表中要点：”“图示解读：”等固定提示语。
+
+`90_最终报告/01_医学统计分析论文初稿.docx` 不包含统计诊断、警告、研究局限性、运行编号、软件/包版本、随机种子或其他可复现性信息。这些运行级内容必须分别写入 `06_统计诊断与警告.md`、`07_研究局限性.md`、`08_可复现性信息.md`，并由报告验证门检查。
 
 当配置 `reporting.visual_regression.require_renderer: true` 时，缺少 LibreOffice 页面渲染器将使报告阶段失败；默认模式会登记“渲染器不可用”，但不声称已完成视觉审查。
 
@@ -213,7 +216,7 @@ Word 正文中文宋体、英文和数字 Times New Roman、小四 12 pt、1.5 �
 - `analysis`：常规报告档位，默认 PNG，但仍要求 R 生成、Source Data 和统计元数据。
 - `manuscript`：论文档位，要求 PNG、SVG、PDF、TIFF 和 Source Data。
 
-论文写作支持默认关闭。只有用户确认 `reporting.manuscript_support.claims` 后才生成主张—证据—边界表、统计方法与可复现性摘要、术语账本，并写入 Word；不得从 P 值或模型方向自动起草论文主张。
+论文写作支持默认关闭。只有用户确认 `reporting.manuscript_support.claims` 后才生成主张—证据—边界表、统计方法与可复现性摘要和术语账本；已确认主张仅可作为 Word 附录，不得从 P 值或模型方向自动起草论文主张。
 
 ## 7. 新模块接入
 

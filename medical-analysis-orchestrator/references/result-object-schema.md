@@ -17,6 +17,7 @@ diagnostics
 warnings
 limitations
 narrative
+reporting_evidence (optional)
 session_metadata
 ```
 
@@ -55,6 +56,8 @@ source_module
 ```
 
 `generated_by` 必须为 `R`。`exports` 登记格式、路径、物理尺寸、DPI 和矢量文字可编辑性；`statistics` 遵循 [R 图形证据契约](r-figure-contract.md)。
+
+`reporting_evidence` 是可选的模块级证据叙述清单。每项至少包含 `artifact_id` 和 `result_statement`，其中 `artifact_id` 必须解析到同一模块已登记的 `table_id` 或 `figure_id`；可选 `interpretation` 只能说明与研究设计匹配的描述、关联或预测含义。不得在该字段编造外部验证、机制、文献、未执行分析或因果结论，也不得把诊断、警告、局限性和可复现性信息写入论文正文。报告器优先使用该清单；未提供时，只能从已登记 CSV/XLSX 和图形统计元数据生成保守的证据说明。
 
 统一对象分别保存为：
 
