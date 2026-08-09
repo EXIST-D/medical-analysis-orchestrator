@@ -123,7 +123,11 @@ figure_contract_settings <- function(config) {
     require_editable_text = isTRUE(
       contract$require_editable_text %||% FALSE
     ),
-    font_family = if (identical(template, "medical-academic-v1")) "Arial" else "sans"
+    font_family = if (identical(template, "medical-academic-v1")) {
+      resolve_medical_figure_font()
+    } else {
+      "sans"
+    }
   )
 }
 
@@ -151,7 +155,21 @@ medical_figure_colors <- function(n, alpha = 1) {
   colors
 }
 
-medical_figure_theme <- function(base_size = 7, base_family = "Arial") {
+resolve_medical_figure_font <- function() {
+  candidates <- c(
+    "Microsoft YaHei", "Microsoft JhengHei", "STSong", "SimSun", "Arial"
+  )
+  if (requireNamespace("systemfonts", quietly = TRUE)) {
+    installed <- unique(as.character(systemfonts::system_fonts()$family))
+    available <- candidates[candidates %in% installed]
+    if (length(available)) return(available[[1L]])
+  }
+  "Arial"
+}
+
+medical_figure_theme <- function(
+  base_size = 7, base_family = resolve_medical_figure_font()
+) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("medical-academic-v1 需要 R 包 ggplot2。", call. = FALSE)
   }
@@ -205,7 +223,9 @@ apply_medical_base_figure_template <- function(settings, multi_panel = FALSE) {
   invisible(settings)
 }
 
-open_r_figure_device <- function(path, format, width_in, height_in, dpi) {
+open_r_figure_device <- function(
+  path, format, width_in, height_in, dpi, font_family = "Arial"
+) {
   switch(
     format,
     png = grDevices::png(
@@ -214,18 +234,18 @@ open_r_figure_device <- function(path, format, width_in, height_in, dpi) {
     ),
     svg = grDevices::svg(
       path, width = width_in, height = height_in,
-      onefile = TRUE, family = "Arial"
+      onefile = TRUE, family = font_family
     ),
     pdf = {
       if (isTRUE(capabilities("cairo"))) {
         grDevices::cairo_pdf(
           path, width = width_in, height = height_in,
-          onefile = TRUE, family = "Arial"
+          onefile = TRUE, family = font_family
         )
       } else {
         grDevices::pdf(
           path, width = width_in, height = height_in,
-          onefile = TRUE, family = "Arial"
+          onefile = TRUE, family = font_family
         )
       }
     },
@@ -264,7 +284,8 @@ export_r_figure <- function(
     tryCatch(
       {
         open_r_figure_device(
-          path, format, width_in, height_in, settings$dpi
+          path, format, width_in, height_in, settings$dpi,
+          settings$font_family
         )
         device_open <- TRUE
         old_par <- graphics::par(no.readonly = TRUE)
@@ -364,15 +385,158 @@ ascii_only_column <- function(x) {
   all(grepl("^[\\x00-\\x7F]*$", values, perl = TRUE))
 }
 
-write_three_line_xlsx <- function(data, path, title, footnotes = character()) {
+journal_table_header <- function(name) {
+  labels <- c(
+    variable = "变量", label = "变量", level = "水平", term = "变量（或水平）",
+    comparison = "比较", method = "统计方法", n = "n", n_display = "n",
+    missing_n = "缺失，n", groups = "组数", rows = "行数", columns = "列数",
+    estimate = "估计值", estimate_log_odds = "估计值（log odds）",
+    coefficient = "相关系数", std_error = "标准误", statistic = "统计量",
+    effect_size = "效应量", effect_size_type = "效应量类型", cramers_v = "Cramér’s V",
+    p_value = "P 值", p_adjusted = "校正后 P 值", group_summary = "各组描述统计",
+    inference = "推断方法", r_squared = "R²", adjusted_r_squared = "调整后 R²",
+    residual_sd = "残差标准差", f_statistic = "F 统计量", df_model = "模型自由度",
+    df_residual = "残差自由度", model_p_value = "模型 P 值", events = "事件数",
+    non_events = "非事件数", odds_ratio = "OR", hazard_ratio = "HR", auc = "AUC",
+    brier_score = "Brier 分数", estimate_ci = "估计值（95% CI）",
+    coefficient_ci = "相关系数（95% CI）", effect_size_ci = "效应量（95% CI）",
+    odds_ratio_ci = "OR（95% CI）", hazard_ratio_ci = "HR（95% CI）"
+  )
+  value <- unname(labels[name])
+  if (!length(value) || is.na(value)) gsub("_", " ", name) else value
+}
+
+format_table_p_value <- function(value) {
+  number <- safe_numeric(value)
+  if (!is.finite(number)) return("")
+  if (number < 0.001) return("<0.001")
+  formatC(number, format = "f", digits = 3)
+}
+
+format_table_scalar <- function(value, column) {
+  text <- trimws(as.character(value %||% ""))
+  if (!nzchar(text) || is.na(value)) return("")
+  if (toupper(text) %in% c("TRUE", "FALSE")) return(if (toupper(text) == "TRUE") "是" else "否")
+  if (column %in% c("p_value", "p_adjusted", "model_p_value")) return(format_table_p_value(value))
+  number <- safe_numeric(value)
+  if (!is.finite(number)) return(text)
+  if (column %in% c("n", "n_display", "missing_n", "groups", "rows", "columns", "events", "non_events", "parameters", "df_model", "df_residual")) {
+    return(formatC(round(number), format = "f", digits = 0))
+  }
+  digits <- if (column %in% c("coefficient", "effect_size", "cramers_v", "r_squared", "adjusted_r_squared", "auc", "brier_score")) 3 else 2
+  if (column %in% c("odds_ratio", "hazard_ratio") && abs(number) < 0.01) digits <- 3
+  formatC(number, format = "f", digits = digits)
+}
+
+format_table_ci <- function(estimate, lower, upper, estimate_column) {
+  estimate_text <- format_table_scalar(estimate, estimate_column)
+  lower_text <- format_table_scalar(lower, estimate_column)
+  upper_text <- format_table_scalar(upper, estimate_column)
+  if (nzchar(lower_text) && nzchar(upper_text)) {
+    return(paste0(estimate_text, "（", lower_text, "–", upper_text, "）"))
+  }
+  estimate_text
+}
+
+combine_table_ci_columns <- function(data, point, lower, upper, combined) {
+  required <- c(point, lower, upper)
+  if (!all(required %in% names(data))) return(data)
+  has_ci <- any(is.finite(suppressWarnings(as.numeric(data[[lower]]))) & is.finite(suppressWarnings(as.numeric(data[[upper]]))))
+  if (!has_ci) return(data)
+  data[[combined]] <- mapply(
+    format_table_ci, data[[point]], data[[lower]], data[[upper]],
+    MoreArgs = list(estimate_column = point), USE.NAMES = FALSE
+  )
+  original_names <- names(data)
+  ordered_names <- character()
+  for (name in original_names) {
+    if (identical(name, point)) ordered_names <- c(ordered_names, combined)
+    if (!name %in% c(point, lower, upper, combined)) ordered_names <- c(ordered_names, name)
+  }
+  data[, ordered_names, drop = FALSE]
+}
+
+table_variable_label <- function(config, variable) {
+  label <- configured_label(config, variable)
+  units <- config$variables$units %||% list()
+  unit <- as.character(units[[variable]] %||% "")
+  if (nzchar(unit) && !identical(label, variable)) paste0(label, "（", unit, "）") else label
+}
+
+render_journal_term <- function(value, config = list()) {
+  term <- trimws(as.character(value %||% ""))
+  if (!nzchar(term)) return("")
+  if (identical(term, "(Intercept)")) return("截距")
+
+  variables <- config$variables %||% list()
+  labels <- variables$labels %||% list()
+  categorical <- unique(as.character(unlist(variables$categorical %||% character(), use.names = FALSE)))
+  categorical <- categorical[nzchar(categorical)]
+  if (length(categorical)) {
+    categorical <- categorical[order(nchar(categorical), decreasing = TRUE)]
+    for (variable in categorical) {
+      if (identical(term, variable)) return(table_variable_label(config, variable))
+      if (startsWith(term, variable)) {
+        level <- substring(term, nchar(variable) + 1L)
+        if (nzchar(level)) return(paste0(table_variable_label(config, variable), "：", level))
+      }
+    }
+  }
+  if (term %in% names(labels)) return(table_variable_label(config, term))
+  term
+}
+
+reference_level_note <- function(config, data) {
+  if (!"term" %in% names(data)) return(character())
+  variables <- config$variables %||% list()
+  categorical <- unique(as.character(unlist(variables$categorical %||% character(), use.names = FALSE)))
+  reference_levels <- variables$reference_levels %||% list()
+  entries <- vapply(categorical, function(variable) {
+    reference <- as.character(reference_levels[[variable]] %||% "")
+    if (!nzchar(reference)) return("")
+    paste0(table_variable_label(config, variable), "=", reference)
+  }, character(1))
+  entries <- entries[nzchar(entries)]
+  if (!length(entries)) character() else paste0("分类自变量的参照水平：", paste(entries, collapse = "；"), "。")
+}
+
+present_journal_table <- function(data, config = list()) {
+  data <- as.data.frame(data, stringsAsFactors = FALSE, check.names = FALSE)
+  if (all(c("variable", "label") %in% names(data)) && any(nzchar(trimws(as.character(data$label))))) {
+    data$variable <- NULL
+  }
+  for (spec in list(
+    c("odds_ratio", "or_conf_low", "or_conf_high", "odds_ratio_ci"),
+    c("hazard_ratio", "hr_conf_low", "hr_conf_high", "hazard_ratio_ci"),
+    c("estimate", "conf_low", "conf_high", "estimate_ci"),
+    c("coefficient", "conf_low", "conf_high", "coefficient_ci"),
+    c("effect_size", "effect_conf_low", "effect_conf_high", "effect_size_ci")
+  )) {
+    data <- combine_table_ci_columns(data, spec[[1]], spec[[2]], spec[[3]], spec[[4]])
+  }
+  original_names <- names(data)
+  for (name in original_names) {
+    if (grepl("_ci$", name)) next
+    if (name %in% c("term", "variable")) {
+      data[[name]] <- vapply(data[[name]], render_journal_term, character(1), config = config)
+    } else {
+      data[[name]] <- vapply(data[[name]], format_table_scalar, character(1), column = name)
+    }
+  }
+  names(data) <- vapply(original_names, journal_table_header, character(1))
+  data
+}
+
+write_three_line_xlsx <- function(data, path, title, footnotes = character(), config = list()) {
   if (!requireNamespace("openxlsx2", quietly = TRUE)) {
     stop("写入 XLSX 需要 R 包 openxlsx2。", call. = FALSE)
   }
+  presentation_data <- present_journal_table(data, config = config)
   workbook <- openxlsx2::wb_workbook(creator = "medical-analysis-orchestrator")
   workbook <- openxlsx2::wb_add_worksheet(
     workbook, "结果", grid_lines = FALSE, has_drawing = FALSE
   )
-  column_count <- max(1L, ncol(data))
+  column_count <- max(1L, ncol(presentation_data))
   last_column <- openxlsx2::int2col(column_count)
   title_dims <- paste0("A1:", last_column, "1")
   workbook <- openxlsx2::wb_add_data(
@@ -390,7 +554,7 @@ write_three_line_xlsx <- function(data, path, title, footnotes = character()) {
 
   start_row <- 3L
   workbook <- openxlsx2::wb_add_data(
-    workbook, "结果", data, start_row = start_row, start_col = 1L, col_names = TRUE
+    workbook, "结果", presentation_data, start_row = start_row, start_col = 1L, col_names = TRUE
   )
   header_dims <- paste0("A", start_row, ":", last_column, start_row)
   workbook <- openxlsx2::wb_add_font(
@@ -406,9 +570,9 @@ write_three_line_xlsx <- function(data, path, title, footnotes = character()) {
     left_border = NULL, right_border = NULL
   )
 
-  if (nrow(data)) {
+  if (nrow(presentation_data)) {
     body_first <- start_row + 1L
-    body_last <- start_row + nrow(data)
+    body_last <- start_row + nrow(presentation_data)
     body_dims <- paste0("A", body_first, ":", last_column, body_last)
     workbook <- openxlsx2::wb_add_font(
       workbook, "结果", dims = body_dims, name = "宋体", size = 10.5
@@ -416,8 +580,18 @@ write_three_line_xlsx <- function(data, path, title, footnotes = character()) {
     workbook <- openxlsx2::wb_add_cell_style(
       workbook, "结果", dims = body_dims, vertical = "center", wrap_text = TRUE
     )
+    first_column_dims <- paste0("A", body_first, ":A", body_last)
+    workbook <- openxlsx2::wb_add_cell_style(
+      workbook, "结果", dims = first_column_dims, horizontal = "left", update = TRUE
+    )
+    if (column_count > 1L) {
+      value_column_dims <- paste0("B", body_first, ":", last_column, body_last)
+      workbook <- openxlsx2::wb_add_cell_style(
+        workbook, "结果", dims = value_column_dims, horizontal = "center", update = TRUE
+      )
+    }
     latin_columns <- which(vapply(
-      data,
+      presentation_data,
       function(column) is.numeric(column) || is.integer(column) || ascii_only_column(column),
       logical(1)
     ))
@@ -440,7 +614,7 @@ write_three_line_xlsx <- function(data, path, title, footnotes = character()) {
   }
 
   if (length(footnotes)) {
-    note_row <- start_row + nrow(data) + 2L
+    note_row <- start_row + nrow(presentation_data) + 2L
     for (index in seq_along(footnotes)) {
       current_note_row <- note_row + index - 1L
       workbook <- openxlsx2::wb_add_data(
@@ -465,9 +639,9 @@ write_three_line_xlsx <- function(data, path, title, footnotes = character()) {
     )
   }
 
-  if (ncol(data)) {
-    for (column_index in seq_len(ncol(data))) {
-      values <- c(names(data)[[column_index]], as.character(data[[column_index]]))
+  if (ncol(presentation_data)) {
+    for (column_index in seq_len(ncol(presentation_data))) {
+      values <- c(names(presentation_data)[[column_index]], as.character(presentation_data[[column_index]]))
       width <- min(40, max(10, max(nchar(values, type = "width"), na.rm = TRUE) + 2))
       workbook <- openxlsx2::wb_set_col_widths(
         workbook, "结果", cols = column_index, widths = width
@@ -497,7 +671,8 @@ write_result_table <- function(context, module_id, table_id, title, data, footno
   csv_path <- file.path(output_dir, paste0(table_id, ".csv"))
   xlsx_path <- file.path(output_dir, paste0(table_id, ".xlsx"))
   utils::write.csv(data, csv_path, row.names = FALSE, na = "", fileEncoding = "UTF-8")
-  write_three_line_xlsx(data, xlsx_path, title, footnotes)
+  journal_notes <- unique(c(footnotes, reference_level_note(context$config %||% list(), data)))
+  write_three_line_xlsx(data, xlsx_path, title, journal_notes, config = context$config %||% list())
   list(
     table_id = table_id,
     title = title,

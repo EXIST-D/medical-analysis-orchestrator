@@ -86,6 +86,7 @@ context_base <- list(
   ),
   random_seed = config$run$random_seed,
   skill_root = skill_root,
+  config = config,
   data = data,
   logs_dir = log_dir
 )

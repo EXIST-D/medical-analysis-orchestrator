@@ -129,7 +129,7 @@ def validate_config_shape(config: dict[str, Any], errors: list[str]) -> None:
     sections = {
         "run": {"run_id", "mode", "output_dir", "random_seed"},
         "input": {"path", "dataset", "sheet", "format", "encoding", "read_only", "expected_sha256", "profile_sha256", "prepared_data_path"},
-        "research": {"primary_question", "design", "primary_objective", "estimand_or_target", "secondary_objectives"},
+        "research": {"title", "background", "keywords", "primary_question", "design", "primary_objective", "estimand_or_target", "secondary_objectives"},
         "variables": {"id", "outcomes", "exposures", "covariates", "categorical", "grouping", "time", "event", "reference_levels", "labels", "units"},
         "data_handling": {"auto_actions", "confirmed_actions", "missing_value_codes", "missing_strategy", "duplicate_strategy", "outlier_strategy", "exclusions", "transformations", "recodes", "merge_plan", "multiple_testing"},
         "analysis": {"modules", "methods", "parameters", "diagnostics", "sensitivity_analyses"},
@@ -557,6 +557,18 @@ def validate(
     seed = nested_get(config, "run.random_seed")
     if not isinstance(seed, int) or seed <= 0:
         errors.append("run.random_seed must be a positive integer")
+
+    research = config.get("research") or {}
+    for field in ("title", "background"):
+        value = research.get(field)
+        if value is not None and not isinstance(value, str):
+            errors.append(f"research.{field} must be a string when supplied")
+    keywords = research.get("keywords")
+    if keywords is not None and (
+        not isinstance(keywords, list)
+        or any(not isinstance(item, str) or not item.strip() for item in keywords)
+    ):
+        errors.append("research.keywords must be a list of non-empty strings when supplied")
 
     input_value = nested_get(config, "input.path")
     if input_value:

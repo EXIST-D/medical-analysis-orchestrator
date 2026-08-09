@@ -17,6 +17,9 @@ input:
   prepared_data_path: ""
 
 research:
+  title: ""
+  background: ""
+  keywords: []
   primary_question: ""
   design: "unknown"
   primary_objective: ""

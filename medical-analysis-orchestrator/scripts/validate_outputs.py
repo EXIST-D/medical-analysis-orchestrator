@@ -39,7 +39,13 @@ REQUIRED = {
         "sessionInfo.txt",
         "package_versions.csv",
     ],
-    "report": ["90_最终报告/01_医学统计分析简要报告.docx"],
+    "report": [
+        "90_最终报告/01_医学统计分析论文初稿.docx",
+        "90_最终报告/05_学术报告表述审计.md",
+        "90_最终报告/06_统计诊断与警告.md",
+        "90_最终报告/07_研究局限性.md",
+        "90_最终报告/08_可复现性信息.md",
+    ],
 }
 
 ALLOWED_RESULT_STATUS = {
@@ -340,6 +346,37 @@ def validate_result_object(
         ):
             errors.append(f"{module_id} 投稿图缺少 png/svg/pdf/tiff 导出")
 
+    reporting_evidence = result.get("reporting_evidence")
+    if reporting_evidence is not None:
+        if not isinstance(reporting_evidence, list):
+            errors.append(f"{module_id} reporting_evidence 必须是列表")
+        else:
+            artifact_ids = {
+                str(item.get("table_id"))
+                for item in tables
+                if isinstance(item, dict) and item.get("table_id")
+            } | {
+                str(item.get("figure_id"))
+                for item in figures
+                if isinstance(item, dict) and item.get("figure_id")
+            }
+            for index, evidence in enumerate(reporting_evidence, start=1):
+                label = f"{module_id} reporting_evidence[{index}]"
+                if not isinstance(evidence, dict):
+                    errors.append(f"{label} 必须是对象")
+                    continue
+                artifact_id = str(evidence.get("artifact_id") or "")
+                statement = evidence.get("result_statement")
+                if not artifact_id:
+                    errors.append(f"{label} 缺少 artifact_id")
+                elif artifact_id not in artifact_ids:
+                    errors.append(f"{label} artifact_id 未解析到同一模块图表")
+                if not isinstance(statement, str) or not statement.strip():
+                    errors.append(f"{label} result_statement 必须是非空字符串")
+                interpretation = evidence.get("interpretation")
+                if interpretation is not None and not isinstance(interpretation, str):
+                    errors.append(f"{label} interpretation 必须是字符串")
+
     if (
         result.get("status") == "completed_with_warnings"
         and not result.get("warnings")
@@ -406,8 +443,6 @@ def main() -> int:
         ):
             if not (run_dir / relative).is_file():
                 errors.append(f"启用 manuscript_support 后缺少输出：{relative}")
-    if args.mode == "report" and not (run_dir / "90_最终报告/05_学术报告表述审计.md").is_file():
-        errors.append("缺少学术报告表述审计输出。")
     if plan and manifest:
         run_id = (plan.get("run") or {}).get("run_id")
         if run_id and run_id != manifest.get("run_id"):

@@ -299,7 +299,7 @@ def main() -> int:
             visual_output = run_dir / "90_最终报告" / "visual_regression"
             command = [
                 sys.executable, str(SCRIPT_DIR / "verify_visual_regression.py"),
-                "--docx", str(run_dir / "90_最终报告" / "01_医学统计分析简要报告.docx"),
+                "--docx", str(run_dir / "90_最终报告" / "01_医学统计分析论文初稿.docx"),
                 "--output", str(visual_output),
             ]
             for xlsx_path in xlsx_paths:

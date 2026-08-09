@@ -22,6 +22,7 @@ required_config: []
 outputs:
   tables: []
   figures: []
+  reporting_evidence: []
   model_objects: []
 ```
 
@@ -46,7 +47,7 @@ run_module <- function(config, context) {
 
 `context` 提供 `run_id`、`run_dir`、只读清洁数据、输入与清洁副本指纹、随机种子、模块输出目录、Skill 根目录和日志目录。
 
-模块不得安装包、修改原始数据或直接生成最终 Word 报告。模块只负责统计计算、诊断、图形、模型对象和结构化表格。
+模块不得安装包、修改原始数据或直接生成最终 Word 报告。模块只负责统计计算、诊断、图形、模型对象和结构化表格。模块可选返回 `reporting_evidence`，为已登记表或图提供可追溯的结果陈述与谨慎解释；未提供时由报告器只基于已登记的结果文件生成保守说明。
 
 ## 最低质量门槛
 
