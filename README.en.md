@@ -10,7 +10,7 @@ inspect → recommend → confirm → execute → report
 
 The Skill first inspects files, datasets, variable types, missingness, duplicates, and possible research roles in read-only mode. It then recommends suitable statistical methods from the research question, study design, and observed data structure. R analyses run only after the user explicitly confirms outcomes, variable roles, cleaning rules, reference levels, and model choices.
 
-Current version: `0.0.5`
+Current version: `0.0.6`
 
 Release status: Beta / technical preview
 
@@ -26,7 +26,7 @@ Release status: Beta / technical preview
 
 ## Default Academic Figure Template
 
-`medical-academic-v1` is the default for every production figure: R-only rendering, white background, Arial text, no panel grid, and a restrained blue/orange/gray palette. Every exported figure records Source Data, statistical metadata, the template identifier, and an interpretation boundary. Modules without a default figure still emit complete result tables and do not create decorative plots automatically.
+`medical-academic-v1` is the default for every production figure: R-only rendering, white background, an available CJK-compatible font, no panel grid, and a restrained blue/orange/gray palette. Version 0.0.6 adds figure planning, semantic guardrails, actual DPI/pixel checks, and grayscale review copies. Every exported figure records Source Data, statistical metadata, the template identifier, and an interpretation boundary. Modules without a default figure still emit complete result tables and do not create decorative plots automatically.
 
 ![medical-academic-v1 contact sheet](medical-analysis-orchestrator/assets/figure-template/medical-academic-v1-contact-sheet.png)
 
@@ -61,7 +61,7 @@ Repository-level documentation is kept separate from the installable Skill in `m
 
 No R packages are installed and no inferential models are run before confirmation.
 
-## Ready Modules in 0.0.5
+## Ready Modules in 0.0.6
 
 | Module | Current capability | Default figure | Status |
 |---|---|---|---|
@@ -194,7 +194,7 @@ This software does not provide medical advice, diagnosis, or treatment recommend
 
 ## Validation Status
 
-Before the `0.0.5` release, the project completed:
+Before the `0.0.6` release, the project completed:
 
 - 32 local end-to-end qualification tests and 3 repository release smoke tests;
 - Skill structure validation;

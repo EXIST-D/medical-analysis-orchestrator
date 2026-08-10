@@ -136,19 +136,30 @@ medical_figure_palette <- function() {
     control = "#707070",
     intervention_a = "#2B6CB0",
     intervention_b = "#D97706",
+    intervention_c = "#2F855A",
+    intervention_d = "#805AD5",
+    intervention_e = "#C53030",
+    intervention_f = "#0F766E",
     neutral = "#707070",
     accent = "#2B6CB0",
     warning = "#D97706"
   )
 }
 
-medical_figure_colors <- function(n, alpha = 1) {
+medical_figure_colors <- function(n, alpha = 1, labels = NULL) {
   n <- as.integer(n)
   if (!is.finite(n) || n < 1L) return(character())
-  palette <- unname(medical_figure_palette()[
-    c("accent", "warning", "neutral")
-  ])
-  colors <- rep(palette, length.out = n)
+  palette <- medical_figure_palette()
+  preferred <- c("control", "intervention_a", "intervention_b", "intervention_c", "intervention_d", "intervention_e", "intervention_f")
+  if (!is.null(labels) && length(labels) == n) {
+    keys <- tolower(gsub("[^a-z0-9]+", "_", as.character(labels)))
+    colors <- unname(palette[keys])
+    missing <- is.na(colors)
+    if (any(missing)) colors[missing] <- unname(palette[preferred][seq_len(sum(missing))])
+  } else {
+    colors <- unname(palette[preferred][seq_len(min(n, length(preferred)))])
+    if (n > length(colors)) colors <- rep(colors, length.out = n)
+  }
   if (!identical(as.numeric(alpha), 1)) {
     colors <- grDevices::adjustcolor(colors, alpha.f = as.numeric(alpha))
   }
@@ -230,7 +241,7 @@ open_r_figure_device <- function(
     format,
     png = grDevices::png(
       path, width = width_in, height = height_in,
-      units = "in", res = dpi, type = "cairo"
+      units = "in", res = dpi, type = "cairo", family = font_family
     ),
     svg = grDevices::svg(
       path, width = width_in, height = height_in,
@@ -251,7 +262,7 @@ open_r_figure_device <- function(
     },
     tiff = grDevices::tiff(
       path, width = width_in, height = height_in,
-      units = "in", res = dpi, compression = "lzw", type = "cairo"
+      units = "in", res = dpi, compression = "lzw", type = "cairo", family = font_family
     ),
     stop("不支持的 R 图形设备：", format, call. = FALSE)
   )

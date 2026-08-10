@@ -134,7 +134,7 @@ def validate_config_shape(config: dict[str, Any], errors: list[str]) -> None:
         "data_handling": {"auto_actions", "confirmed_actions", "missing_value_codes", "missing_strategy", "duplicate_strategy", "outlier_strategy", "exclusions", "transformations", "recodes", "merge_plan", "multiple_testing"},
         "analysis": {"modules", "methods", "parameters", "diagnostics", "sensitivity_analyses"},
         "runtime": {"language", "r_executable", "minimum_version", "auto_install_missing_packages", "library_scope", "project_library", "repository", "use_renv", "project_dir", "python_executable", "minimum_python_version", "auto_install_missing_python_packages", "python_repository"},
-        "reporting": {"language", "table_formats", "figure_contract", "manuscript_support", "build_word_report", "suppress_small_cells", "small_cell_threshold", "include_patient_level_data", "visual_regression", "word", "workbook"},
+        "reporting": {"language", "table_formats", "figure_contract", "figure_plan", "manuscript_support", "build_word_report", "suppress_small_cells", "small_cell_threshold", "include_patient_level_data", "visual_regression", "word", "workbook"},
         "approval": {"confirmed", "confirmed_by", "confirmed_at", "plan_sha256", "notes"},
     }
     for name, allowed in sections.items():
@@ -158,15 +158,20 @@ def validate_config_shape(config: dict[str, Any], errors: list[str]) -> None:
     reporting = config.get("reporting") or {}
     reject_unknown_keys(
         reporting.get("figure_contract"),
-        {"template", "profile", "backend", "formats", "width_mm", "height_mm", "dpi", "require_source_data", "require_statistics_metadata", "require_editable_text"},
+        {"template", "profile", "backend", "formats", "width_mm", "height_mm", "dpi", "require_source_data", "require_statistics_metadata", "require_editable_text", "journal_profile", "visual_qa", "grayscale_preview", "require_actual_dimensions", "min_dpi"},
         "reporting.figure_contract", errors,
+    )
+    reject_unknown_keys(
+        reporting.get("figure_plan"),
+        {"selection_mode", "require_confirmation", "journal_profile", "module_overrides", "prohibited"},
+        "reporting.figure_plan", errors,
     )
     reject_unknown_keys(
         reporting.get("manuscript_support"),
         {"enabled", "separate_results_and_interpretation", "include_methods_reproducibility", "build_terminology_ledger", "claims", "terminology"},
         "reporting.manuscript_support", errors,
     )
-    reject_unknown_keys(reporting.get("visual_regression"), {"enabled", "require_renderer"}, "reporting.visual_regression", errors)
+    reject_unknown_keys(reporting.get("visual_regression"), {"enabled", "require_renderer", "figure_qa", "grayscale_preview"}, "reporting.visual_regression", errors)
     reject_unknown_keys(reporting.get("word"), {"east_asia_font", "latin_font", "body_size_pt", "line_spacing", "first_line_indent_chars"}, "reporting.word", errors)
     reject_unknown_keys(reporting.get("workbook"), {"east_asia_font", "latin_font", "body_size_pt", "style", "use_color"}, "reporting.workbook", errors)
 

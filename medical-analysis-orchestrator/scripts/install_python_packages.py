@@ -11,7 +11,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 
-ALLOWED_PACKAGES = {"pandas", "PyYAML", "openpyxl", "python-docx", "xlrd", "pyreadstat", "pyarrow"}
+ALLOWED_PACKAGES = {"pandas", "PyYAML", "openpyxl", "python-docx", "Pillow", "xlrd", "pyreadstat", "pyarrow"}
 
 
 def parse_args() -> argparse.Namespace:

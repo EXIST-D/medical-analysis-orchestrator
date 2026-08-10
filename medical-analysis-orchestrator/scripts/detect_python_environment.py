@@ -18,6 +18,7 @@ CORE_PACKAGES = {
     "PyYAML": {"import": "yaml", "minimum_version": "6.0.0"},
     "openpyxl": {"import": "openpyxl", "minimum_version": "3.1.0"},
     "python-docx": {"import": "docx", "minimum_version": "1.1.0"},
+    "Pillow": {"import": "PIL", "minimum_version": "10.0.0"},
 }
 FORMAT_PACKAGES = {
     "csv": [], "tsv": [], "txt": [], "dat": [], "json": [], "jsonl": [],
@@ -61,11 +62,13 @@ def meets_minimum(version: str | None, minimum: str) -> bool:
     return observed + (0,) * max(0, len(required) - len(observed)) >= required + (0,) * max(0, len(observed) - len(required))
 
 
-def capability(format_name: str) -> dict:
+def capability(format_name: str, require_figure_qa: bool = False) -> dict:
     normalized = format_name.lower().lstrip(".")
     # These packages are required by the confirmed pipeline itself; reader extras
     # are added only for the detected input format.
     required_names = [*CORE_PACKAGES, *FORMAT_PACKAGES.get(normalized, [])]
+    if not require_figure_qa:
+        required_names.remove("Pillow")
     registry = {**CORE_PACKAGES, **EXTRA_PACKAGES}
     packages = []
     for name in dict.fromkeys(required_names):
@@ -96,13 +99,14 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="检测医学分析输入格式的 Python 依赖能力。")
     parser.add_argument("--input", required=True, help="Input file path")
     parser.add_argument("--output", required=True, help="Output JSON path")
+    parser.add_argument("--require-figure-qa", action="store_true", help="Require Pillow for existing-figure visual QA")
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
     input_path = Path(args.input).expanduser().resolve()
-    result = capability(input_path.suffix)
+    result = capability(input_path.suffix, args.require_figure_qa)
     result.update(
         {
             "schema_version": "1.0",
