@@ -274,6 +274,24 @@ reporting:
     require_source_data: true
     require_statistics_metadata: true
     require_editable_text: false
+    journal_profile: "medical-academic-v1"
+    visual_qa: true
+    grayscale_preview: true
+    require_actual_dimensions: true
+    min_dpi: 300
+  figure_plan:
+    selection_mode: "auto_recommend_then_confirm"
+    require_confirmation: false
+    journal_profile: "medical-academic-v1"
+    module_overrides: {}
+    prohibited:
+      - "mean_only_bar_for_small_n"
+      - "dual_y_axis"
+      - "pie_chart"
+      - "three_dimensional_chart"
+      - "rainbow_palette"
+      - "unapproved_significance_stars"
+      - "line_joining_unordered_categories"
   manuscript_support:
     enabled: false
     separate_results_and_interpretation: true
@@ -288,6 +306,8 @@ reporting:
   visual_regression:
     enabled: true
     require_renderer: false
+    figure_qa: true
+    grayscale_preview: true
   word:
     east_asia_font: "宋体"
     latin_font: "Times New Roman"

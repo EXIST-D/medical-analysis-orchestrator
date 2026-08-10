@@ -122,16 +122,15 @@ def main() -> int:
     if not input_path.is_absolute():
         input_path = (config_path.parent / input_path).resolve()
     python_profile_path = runtime_dir / "python_environment.json"
-    run(
-        [
-            sys.executable,
-            str(SCRIPT_DIR / "detect_python_environment.py"),
-            "--input",
-            str(input_path),
-            "--output",
-            str(python_profile_path),
-        ]
-    )
+    figure_contract = (config.get("reporting") or {}).get("figure_contract") or {}
+    python_detect_command = [
+        sys.executable,
+        str(SCRIPT_DIR / "detect_python_environment.py"),
+        "--input", str(input_path), "--output", str(python_profile_path),
+    ]
+    if bool(figure_contract.get("visual_qa", True)):
+        python_detect_command.append("--require-figure-qa")
+    run(python_detect_command)
     python_missing = python_install_plan(runtime_dir)
     if python_missing:
         if args.no_install or not bool((config.get("runtime") or {}).get("auto_install_missing_python_packages", True)):
@@ -161,6 +160,17 @@ def main() -> int:
             ]
         )
     run([sys.executable, str(SCRIPT_DIR / "prepare_data.py"), "--config", str(config_path)])
+    # 图形方案先于 R 执行生成；该步骤只读取配置/数据 profile，不绘图、不改变数据。
+    figure_plan_output = run_dir / "90_最终报告" / "figure_plan.json"
+    run(
+        [
+            sys.executable,
+            str(SCRIPT_DIR / "plan_figures.py"),
+            "--config", str(config_path),
+            "--output", str(figure_plan_output),
+            "--profile", str(run_dir / "data_profile.json"),
+        ]
+    )
     run(
         [
             sys.executable,
@@ -275,6 +285,26 @@ def main() -> int:
             "execute",
         ]
     )
+    if bool(figure_contract.get("visual_qa", True)):
+        figure_qa_output = run_dir / "90_最终报告" / "figure_visual_qa.json"
+        qa_command = [
+            sys.executable,
+            str(SCRIPT_DIR / "figure_visual_qa.py"),
+            "--run-dir", str(run_dir),
+            "--output", str(figure_qa_output),
+        ]
+        if bool(figure_contract.get("grayscale_preview", True)):
+            qa_command.append("--grayscale")
+        qa_command.extend(["--min-dpi", str(int(figure_contract.get("min_dpi", figure_contract.get("dpi", 300))))])
+        run(qa_command)
+        run(
+            [
+                sys.executable,
+                str(SCRIPT_DIR / "update_manifest.py"),
+                "--run-dir", str(run_dir),
+                "--phase", "execute",
+            ]
+        )
     run(
         [
             sys.executable,

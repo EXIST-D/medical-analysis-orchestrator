@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "project": "medical-analysis-orchestrator",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "source_root": "medical-analysis-orchestrator",
   "files": {
     "agents/openai.yaml": {
@@ -17,8 +17,8 @@
       "size": 1111
     },
     "modules/_shared/module_utils.R": {
-      "sha256": "5ffdb1197cbc4df6d3974865769c45aa482cdf20b718eaf3342b01e9bbdba618",
-      "size": 26110
+      "sha256": "f35d075e82f6d254ce4001e39912faa11690daf94981958bf6362b49762bc017",
+      "size": 26771
     },
     "modules/bayesian/analysis.R": {
       "sha256": "13c39f1da3cd127ac2ae93d8e2974e99fc13be2d63119c5c5e3f30fb3788ecae",
@@ -196,9 +196,13 @@
       "sha256": "15f80a982fa9071f5763857c23e6b0c6f32759717feec94062f453bd2fe6ee3a",
       "size": 3017
     },
+    "references/figure-orchestration.md": {
+      "sha256": "2f609988953532dd4c89bde25c94e91e1caa6cf313b715adb54dece947102e00",
+      "size": 2719
+    },
     "references/figure-template-default.md": {
-      "sha256": "b912958e830a0f390564f2675410b4298ef80607b390f05d35fb4efedc23410c",
-      "size": 3596
+      "sha256": "0fec0432a763776f2d55db51f498f21ffd345e0c5e18d019199f0b405042eae5",
+      "size": 4024
     },
     "references/medical-table-presentation.md": {
       "sha256": "86c4fe7541ecc2ba0f7448089fe92c1e17c5bd9e42a2977b0a9f80747f003eb2",
@@ -221,16 +225,16 @@
       "size": 3230
     },
     "references/package-registry.md": {
-      "sha256": "4459c250df0d55fd9c918fc85db6a33a42c58afad90446a1fe36aa963f81164d",
-      "size": 2800
+      "sha256": "982064673d20ffea690d3896a0cf1e52a3e06e458a5987b04e86016cb33af1cf",
+      "size": 2886
     },
     "references/psychometrics-rules.md": {
       "sha256": "aaf5a893fc00901f88e6dfb08a83d5ab1fab6a5fc6d1a8fe563320f0f2a35540",
       "size": 1975
     },
     "references/r-figure-contract.md": {
-      "sha256": "568e427bd8cb865104f9051dbbf7b03d213c4ef2a4b5adcc7ee1914b8b1f8df2",
-      "size": 2706
+      "sha256": "069557a95268c17bd0cf58a9b10212b4ccf1b190c2eb2703488b4365f99c0711",
+      "size": 3385
     },
     "references/report-template.md": {
       "sha256": "02e19138d466639c9b095fae506125dc80d63d94b700ff0bb17cac38a3cb0d5e",
@@ -257,8 +261,8 @@
       "size": 1611
     },
     "scripts/detect_python_environment.py": {
-      "sha256": "02c7225538f9b7a91437d2956fc42d84d8d19a2aa4379434f7098cdd6ea8f1ad",
-      "size": 5069
+      "sha256": "f24c2eabf69b94a775ed89689284e0d4cb4fbfda56cc82b852c130b0722a8e9a",
+      "size": 5379
     },
     "scripts/detect_r_environment.py": {
       "sha256": "da80ee40bc3871e79221ac6e04aee200d8fcaed7d34d547feb3e8d88b8bb374c",
@@ -267,6 +271,10 @@
     "scripts/detect_r_environment.R": {
       "sha256": "b722ff4c33c3078b30357464ad9400cf51341e835ad879bc91c8a228fba8882f",
       "size": 2537
+    },
+    "scripts/figure_visual_qa.py": {
+      "sha256": "cc3c5e84156da4ce0c6390e6b4771731733b0fe046ff0fdf1aacdce11ba74a1c",
+      "size": 6924
     },
     "scripts/generate_audit_report.py": {
       "sha256": "8b7c777997572b34be34501b558da970f23f4cd9bdeb932a87a626431e24e994",
@@ -285,12 +293,16 @@
       "size": 4453
     },
     "scripts/install_python_packages.py": {
-      "sha256": "60a69fda75e499d0f3798479fb3a183bb86a4eb66b4e7e8fbdcda6c54556430f",
-      "size": 2862
+      "sha256": "5803cb7d77ffb04e72c28e90bc1bff2f4992a44c57e18e0d4a0debff5d3fd7f1",
+      "size": 2872
     },
     "scripts/manage_renv.R": {
       "sha256": "3cce051bd35efe67ff85a8ac7c004514937a70fc4f26eabfe2a99eb933a82a15",
       "size": 3536
+    },
+    "scripts/plan_figures.py": {
+      "sha256": "6e7cb511eae1981fb0d14ddab798777ea14b3e1957974909907f32a1b1e05a22",
+      "size": 6302
     },
     "scripts/prepare_data.py": {
       "sha256": "b1f7cbf15c2f585f379152a374642cb086c6532b2937e24c19239e5ab8905fd3",
@@ -305,8 +317,8 @@
       "size": 7280
     },
     "scripts/run_pipeline.py": {
-      "sha256": "da8bdab36138844c907bd6b88cbdace6258e69e14ee8f4d02bb6633a6fb18e85",
-      "size": 12634
+      "sha256": "73b090f9b0580662b9b4a1cd389d6abb5b3c7adb01f6a4b3e6b6d51dd593d40d",
+      "size": 14071
     },
     "scripts/run_r.py": {
       "sha256": "76faa65ba7b03d33c2a5395f73b9db60564a6922e5404fb6cac20902ff7c4680",
@@ -317,8 +329,8 @@
       "size": 5742
     },
     "scripts/validate_config.py": {
-      "sha256": "ab4990781b0f084d6f6c5482429a0c2d502551c4f1e4734cf1ed2d330e2a1a1c",
-      "size": 43713
+      "sha256": "deea69d1c9b6b664a7996773323cd3d1ffe02a669ed500858a19d77fa84c8750",
+      "size": 44070
     },
     "scripts/validate_outputs.py": {
       "sha256": "c7318cfa7b404069c70ceb77f725585fd613fc60939cbe0c1f56c058e6213670",
@@ -333,12 +345,16 @@
       "size": 1953
     },
     "SKILL.md": {
-      "sha256": "ce01b7229b98bcdcd7272b2cd0fb696f2b794a9dd0d3224a45a68fa0a178b2f0",
-      "size": 14229
+      "sha256": "aea37f7788b14d0c20751c0eb95ff500b33290936cfe263692d3bb43789519ad",
+      "size": 14873
     },
     "templates/analysis_config.yml": {
-      "sha256": "7d5823e292eebc691a74d2783af06fe67bbed54a4f6a13a928faa7ed9801008f",
-      "size": 6827
+      "sha256": "52a8869d7cb0be484372b984b212fda775a70c5a65bcd1c88bc771b0a1b1db84",
+      "size": 7422
+    },
+    "tests/test_figure_orchestration.py": {
+      "sha256": "e9ac8a3054747eae45ade538ec1a2d1ee2616dc128948fd25755a702c7c2f621",
+      "size": 2711
     },
     "tests/test_report_contract.py": {
       "sha256": "2663e35d227a51c4b2d247602f46f4925abff835c2d669d50d3bb323af19a985",

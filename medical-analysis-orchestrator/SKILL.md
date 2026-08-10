@@ -59,6 +59,7 @@ description: 通用医学数据分析编排 Skill。用于读取 CSV、Excel、D
 - [医学期刊结果表呈现规范](references/medical-table-presentation.md)
 - 制作或验证统计图时读取 [R 图形证据契约](references/r-figure-contract.md)。
 - 默认使用 [medical-academic-v1 学术绘图模板](references/figure-template-default.md)；该模板的联系表预览位于 `assets/figure-template/medical-academic-v1-contact-sheet.png`。
+- 设计图形方案和执行视觉质控时读取 [图形编排与视觉质控契约](references/figure-orchestration.md)。
 - 生成默认论文初稿时读取 [科学写作支持契约](references/scientific-writing-contract.md) 与 [学术报告表述与报告风格](references/academic-reporting-style.md)。
 
 ## 1. 数据探查
@@ -167,9 +168,10 @@ python scripts/run_pipeline.py --config "<run目录>/analysis_plan.yml"
 5. 解析模块依赖并按需安装到项目 Library；
 6. 按注册顺序执行 R 模块；
 7. 保存统一 JSON/RDS 结果对象、模型对象、图形和表格，并锁定运行环境；
-8. 重建 manifest 并校验文件哈希与模块顺序；
-9. 只从已验证结果生成学术论文初稿、运行级补充 Markdown 和学术表述审计；
-10. 在可用时对 Word/XLSX 做 LibreOffice 页面渲染回归，并再次执行 report 级验证。
+8. 生成图形计划并运行 R 图形视觉 QA；Python 仅检查已有 R 图形和生成灰度复核副本；
+9. 重建 manifest 并校验文件哈希与模块顺序；
+10. 只从已验证结果生成学术论文初稿、运行级补充 Markdown 和学术表述审计；
+11. 在可用时对 Word/XLSX 做 LibreOffice 页面渲染回归，并再次执行 report 级验证。
 
 ## 6. 输出格式
 
@@ -215,6 +217,8 @@ Word 默认输出为“医学统计分析论文初稿”：中文宋体、英文
 
 - `analysis`：常规报告档位，默认 PNG，但仍要求 R 生成、Source Data 和统计元数据。
 - `manuscript`：论文档位，要求 PNG、SVG、PDF、TIFF 和 Source Data。
+
+图形选择和质量门由 `reporting.figure_plan` 与 `reporting.figure_contract.visual_qa` 控制。执行前生成 `90_最终报告/figure_plan.json`，执行后生成 `90_最终报告/figure_visual_qa.json`；默认同时生成基于 R PNG 的灰度复核副本。图形 QA 只验证文件、元数据和可读性，不替代统计诊断、人工视觉审阅或目标期刊的最终投稿检查。
 
 论文写作支持默认关闭。只有用户确认 `reporting.manuscript_support.claims` 后才生成主张—证据—边界表、统计方法与可复现性摘要和术语账本；已确认主张仅可作为 Word 附录，不得从 P 值或模型方向自动起草论文主张。
 

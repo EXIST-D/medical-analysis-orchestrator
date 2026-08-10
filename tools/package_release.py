@@ -47,7 +47,7 @@ def sha256_file(path: Path) -> str:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="打包可安装的 v0.0.5 Skill 发布资产。")
+    parser = argparse.ArgumentParser(description="打包可安装的当前版本 Skill 发布资产。")
     parser.add_argument("--output", type=Path)
     return parser.parse_args()
 
@@ -55,7 +55,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     version = (REPO_ROOT / "VERSION").read_text(encoding="utf-8-sig").strip()
-    if version != "0.0.5":
+    if not version or version != "0.0.6":
         raise SystemExit(f"Refusing to package unexpected version: {version}")
     output = (
         args.output.resolve()

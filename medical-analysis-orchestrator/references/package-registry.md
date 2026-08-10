@@ -47,4 +47,4 @@
 
 ## Python 编排依赖
 
-推荐环境需要 `pandas`、`openpyxl`、`PyYAML`、`python-docx`、`pyreadstat` 和 `pytest`。Python 负责探查、契约、验证和报告；统计计算仍由 R 模块完成。
+推荐环境需要 `pandas`、`openpyxl`、`PyYAML`、`python-docx`、`pyreadstat` 和 `pytest`。当确认启用图形视觉 QA 时，按需增加 `Pillow`，仅读取 R 已生成的 PNG 并生成灰度复核副本；统计计算和统计图形仍由 R 模块完成。
